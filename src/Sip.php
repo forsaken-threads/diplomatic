@@ -29,6 +29,9 @@ class Sip {
     protected $onSuccessHandlerExtraArgs;
     protected $onSuccessHandler;
 
+    // Boolean that determines whether to reset all handlers after a Sip
+    protected $resetHandlers = true;
+
     // headers for the Sip
     protected $straws = [];
 
@@ -124,8 +127,9 @@ class Sip {
 
     /**
      *
-     * Register a callback (or anything really) for any Drink - supersedes all other handlers
-     * Optional extra arguments may be passed that will be forwarded to the callback when invoked
+     * Register a callback (or anything but `null`) for any Drink - supersedes all other handlers
+     * The callback will receive the Drink as the first argument
+     * Optional extra arguments may be passed here that will also be provided to the callback when invoked
      *
      * @param mixed $callback
      *
@@ -142,8 +146,9 @@ class Sip {
 
     /**
      *
-     * Register a callback (or anything really) for an errored Drink
-     * Optional extra arguments may be passed that will be forwarded to the callback when invoked
+     * Register a callback (or anything but `null`) for an errored Drink
+     * The callback will receive the Drink as the first argument
+     * Optional extra arguments may be passed here that will also be provided to the callback when invoked
      *
      * @param mixed $callback
      *
@@ -160,8 +165,9 @@ class Sip {
 
     /**
      *
-     * Register a callback (or anything really) for a failed Drink
-     * Optional extra arguments may be passed that will be forwarded to the callback when invoked
+     * Register a callback (or anything but `null`) for a failed Drink
+     * The callback will receive the Drink as the first argument
+     * Optional extra arguments may be passed here that will also be provided to the callback when invoked
      *
      * @param mixed $callback
      *
@@ -178,8 +184,9 @@ class Sip {
 
     /**
      *
-     * Register a callback (or anything really) for a successful Drink
-     * Optional extra arguments may be passed that will be forwarded to the callback when invoked
+     * Register a callback (or anything buty `null`) for a successful Drink
+     * The callback will receive the Drink as the first argument
+     * Optional extra arguments may be passed here that will also be provided to the callback when invoked
      *
      * @param mixed $callback
      *
@@ -238,6 +245,20 @@ class Sip {
     public function put($page, $data = [], $files = [])
     {
         return $this->sip($page, $data, '-X PUT', $files);
+    }
+
+    /**
+     *
+     * Set the resetHandlers property
+     *
+     * @param $reset
+     *
+     * @return $this
+     */
+    public function resetHandlersAfterSip($reset)
+    {
+        $this->resetHandlers = @(boolean) $reset;
+        return $this;
     }
 
     /**
@@ -396,24 +417,41 @@ class Sip {
         $this->drink->initializeDrink($rawDrink, $this->code, $nutritionalInfo, $cliCall);
 
         // check for onAny handler
-        if ($this->onAnyHandler) {
+        if ($this->onAnyHandler !== null) {
             return is_callable($this->onAnyHandler)
                 ? call_user_func_array($this->onErrorHandler, $this->array_enqueue($this->onAnyHandlerExtraArgs, $this->drink))
                 : $this->onAnyHandler;
         }
-        if ($this->onErrorHandler && $this->drink->wasErrored()) {
-            return is_callable($this->onErrorHandler) ? call_user_func_array($this->onErrorHandler, $this->array_enqueue($this->onErrorHandlerExtraArgs, $this->drink)) : $this->onErrorHandler;
+
+        // if errored, check for onError handler
+        if ($this->onErrorHandler !== null && $this->drink->wasErrored()) {
+            return is_callable($this->onErrorHandler)
+                ? call_user_func_array($this->onErrorHandler, $this->array_enqueue($this->onErrorHandlerExtraArgs, $this->drink))
+                : $this->onErrorHandler;
         }
-        if ($this->onFailureHandler && !$this->drink->wasErrored() && !$this->drink->wasSuccessful()) {
-            return is_callable($this->onFailureHandler) ? call_user_func_array($this->onFailureHandler, $this->array_enqueue($this->onFailureHandlerExtraArgs, $this->drink)) : $this->onFailureHandler;
+
+        // if failed, check for onFailure handler
+        if ($this->onFailureHandler !== null && $this->drink->wasFailed()) {
+            return is_callable($this->onFailureHandler)
+                ? call_user_func_array($this->onFailureHandler, $this->array_enqueue($this->onFailureHandlerExtraArgs, $this->drink))
+                : $this->onFailureHandler;
         }
-        if ($this->onSuccessHandler && !$this->drink->wasErrored() && $this->drink->wasSuccessful()) {
-            return is_callable($this->onSuccessHandler) ? call_user_func_array($this->onSuccessHandler, $this->array_enqueue($this->onSuccessHandlerExtraArgs, $this->drink)) : $this->onSuccessHandler;
+
+        // if successful, check for onSuccess handler
+        if ($this->onSuccessHandler !== null && $this->drink->wasSuccessful()) {
+            return is_callable($this->onSuccessHandler)
+                ? call_user_func_array($this->onSuccessHandler, $this->array_enqueue($this->onSuccessHandlerExtraArgs, $this->drink))
+                : $this->onSuccessHandler;
         }
-        $this->onAnyHandler = null;
-        $this->onErrorHandler = null;
-        $this->onFailureHandler = null;
-        $this->onSuccessHandler = null;
+
+        // if required reset the handlers
+        if ($this->resetHandlers) {
+            $this->onAnyHandler = null;
+            $this->onErrorHandler = null;
+            $this->onFailureHandler = null;
+            $this->onSuccessHandler = null;
+        }
+
         return $this;
     }
 
