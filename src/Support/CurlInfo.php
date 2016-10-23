@@ -1,6 +1,6 @@
-<?php namespace ForsakenThreads\Sip;
+<?php namespace ForsakenThreads\Diplomatic\Support;
 
-class NutritionalInfo {
+class CurlInfo {
 
     // The result of curl_getinfo() for the Sip
     protected $info;

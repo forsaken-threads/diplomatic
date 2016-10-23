@@ -1,12 +1,12 @@
 {
-    "name": "forsaken-threads/sip",
-    "description": "Yet another cURL wrapper.",
+    "name": "forsaken-threads/diplomatic",
+    "description": "A diplomatic cURL wrapper.",
     "require": {
         "php": "^5.5.0 || ^7.0"
     },
     "autoload": {
         "psr-4": {
-            "ForsakenThreads\\Sip\\": "./src"
+            "ForsakenThreads\\Diplomatic\\": "./src"
         }
     }
 }
