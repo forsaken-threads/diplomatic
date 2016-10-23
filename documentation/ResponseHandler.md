@@ -24,7 +24,7 @@ class MarkitOnDemand extends ResponseHandler {
     function wasFailed()
     {
         // if this was errored, it is not failed.
-        // if it wasn't errored, but the Message key does not exist on the filtered response, it is also not failed
+        // if it wasn't errored, but the Message key doesn't exist, it is also not failed
         if ($this->wasErrored() || !key_exists('Message', $this->filteredResponse)) {
             return false;
         }
@@ -115,7 +115,8 @@ These are really just wrappers around two built-in PHP functions.  If you want t
 
 use ForsakenThreads\Diplomatic\Support\BasicFilters
 
-// this registers the json filter and passes true as the $assoc argument to force the decoder to return an associative array rather than an object
+// this registers the json filter and passes true as the $assoc argument
+// to force the decoder to return an associative array rather than an object
 $handler->filter([BasicFilters::class, 'json'], true);
 
 // this registers the simpleXml filter and passes a custom class name to the second argument
@@ -128,7 +129,7 @@ Because the filters only act on valid XML or JSON, they can both be safely regis
 
 The HTTP headers and version for the response are stored in the `headers` and `htmlVersion` properties of the `ResponseHandler`.  The headers are stored as an associative array where the keys are the header type and the values are the header value.  They both have standard getters to retrieve them.
 
-The *Response Handler* abstract class also contains three other useful properties, `code`, `cliCall` and `curlInfo`.  The Http response code is stored in `code`.  A string that represents a CLI version of the underlying cURL call can be found in `cliCall`. This might come in handy in weird debugging situations.  These two both have standard getters, `getCode()` and `getCliCall`.  The last one, `curlInfo`, contains a `CurlInfo` object that is a wrapper around the information returned by the method `curl_getinfo()`.  The `CurlInfo` object has standard getters for all of the keys in the associative array returned by `curl_getinfo()`.  To access them you must use the `curlInfo` getter `info()`.
+The *Response Handler* abstract class also contains three other useful properties, `code`, `cliCall` and `curlInfo`.  The HTTP response code is stored in `code`.  A string that represents a CLI version of the underlying cURL call can be found in `cliCall`. This might come in handy in weird debugging situations.  These two both have standard getters, `getCode()` and `getCliCall()`.  The last one, `curlInfo`, contains a `CurlInfo` object that is a wrapper around the information returned by the method `curl_getinfo()`.  The `CurlInfo` object has standard getters for all of the keys in the associative array returned by `curl_getinfo()`.  To access them you must use the `curlInfo` getter `info()`.
 
 ```
 <?php
@@ -136,3 +137,5 @@ The *Response Handler* abstract class also contains three other useful propertie
 $sizeUpload = $handler->info()->getSizeUpload();
 $contentType = $handler->info()->getContentType();
 ```
+
+* [**Diplomatic** Client](./documentation/Client.md)
