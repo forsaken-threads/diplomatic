@@ -18,7 +18,8 @@ class MarkitOnDemandHandler extends ResponseHandler {
      */
     function wasErrored()
     {
-        // failed to get parsed as JSON so the filter response is the same as the raw response
+        // if the response failed to get parsed as JSON, the filtered response is the same as the raw response
+        // if JSON decoding failed, something is seriously wrong, and we'll call that an errored response
         return $this->filteredResponse == $this->rawResponse;
     }
 

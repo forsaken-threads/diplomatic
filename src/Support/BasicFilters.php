@@ -19,12 +19,12 @@ class BasicFilters {
             return $response;
         }
 
-        $filteredResponse = json_decode($$response, $assoc, $depth, $options);
+        $filteredResponse = json_decode($response, $assoc, $depth, $options);
 
         if (json_last_error() == JSON_ERROR_NONE) {
             return $filteredResponse;
         }
-        
+
         return $response;
     }
 
