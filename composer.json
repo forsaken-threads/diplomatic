@@ -1,6 +1,15 @@
 {
     "name": "forsaken-threads/diplomatic",
     "description": "A diplomatic cURL wrapper.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Keith E. Freeman",
+            "email": "diplomatic@forsaken-threads.com",
+            "homepage": "http://forsaken-threads.com",
+            "role": "Developer"
+        }
+    ],
     "require": {
         "php": "^5.5.0 || ^7.0"
     },
