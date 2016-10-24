@@ -15,9 +15,16 @@ class BasicFilters {
      */
     static public function json($response, $assoc = false, $depth = 512, $options = 0)
     {
-        if (Helpers::is_json($response)) {
-            return json_decode($response, $assoc, $depth, $options);
+        if (!is_string($response)) {
+            return $response;
         }
+
+        $filteredResponse = json_decode($$response, $assoc, $depth, $options);
+
+        if (json_last_error() == JSON_ERROR_NONE) {
+            return $filteredResponse;
+        }
+        
         return $response;
     }
 

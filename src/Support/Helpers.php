@@ -27,18 +27,4 @@ class Helpers {
         return $array;
     }
 
-    /**
-     *
-     * Determine if the provided argument is properly encoded json
-     *
-     * @param $string
-     *
-     * @return bool
-     */
-    static public function is_json($string)
-    {
-        return (boolean) (is_string($string) && json_decode($string) !== null);
-    }
-
-
 }
