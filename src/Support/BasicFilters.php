@@ -38,7 +38,7 @@ class BasicFilters {
      * @param string $ns
      * @param bool $isPrefix
      *
-     * @return \SimpleXMLElement
+     * @return mixed
      */
     static public function simpleXml($response, $className = 'SimpleXMLElement', $options = 0, $ns = '', $isPrefix = false)
     {

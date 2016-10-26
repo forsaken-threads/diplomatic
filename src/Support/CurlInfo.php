@@ -2,7 +2,7 @@
 
 class CurlInfo {
 
-    // The result of curl_getinfo() for the Sip
+    // The result of curl_getinfo() for the Request
     protected $info;
 
     public function getCertinfo()

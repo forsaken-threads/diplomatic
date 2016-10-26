@@ -210,18 +210,6 @@ class Client {
 
     /**
      *
-     * Register an onSuccess handler that simply returns the response handler
-     *
-     * @return $this
-     */
-    public function onSuccessReturnResponseHandler()
-    {
-        return $this->onSuccess([$this, 'returnResponseHandler']);
-    }
-
-
-    /**
-     *
      * An OPTIONS request
      *
      * @param string $page
@@ -290,14 +278,6 @@ class Client {
     {
         $this->resetHandlers = @(boolean) $reset;
         return $this;
-    }
-
-    /**
-     * @return ResponseHandler
-     */
-    public function returnResponseHandler()
-    {
-        return $this->responseHandler;
     }
 
     /**

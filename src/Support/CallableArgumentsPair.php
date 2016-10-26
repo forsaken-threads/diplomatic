@@ -8,10 +8,11 @@ class CallableArgumentsPair {
     /** @var array */
     protected $arguments;
 
-    public function __construct($callable, $arguments = [])
+    public function __construct($func_args)
     {
+        $callable = array_shift($func_args);
         $this->callable = $callable;
-        $this->arguments = $arguments;
+        $this->arguments = $func_args;
     }
 
     /**

@@ -25,7 +25,7 @@ abstract class ResponseHandler {
     protected $filteredResponse;
 
     /** @var CallableArgumentsPair[] $filters */
-    protected $filters;
+    protected $filters = [];
 
     // Raw response
     protected $rawResponse;
@@ -180,9 +180,7 @@ abstract class ResponseHandler {
      */
     public function filter(callable $callable)
     {
-        $arguments = func_get_args();
-        $callable = array_shift($arguments);
-        $this->filters[] = new CallableArgumentsPair($callable, $arguments);
+        $this->filters[] = new CallableArgumentsPair(func_get_args());
         return $this;
     }
 
