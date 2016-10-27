@@ -1,5 +1,6 @@
 <?php namespace ForsakenThreads\Diplomatic;
 
+use CURLFile;
 use ForsakenThreads\Diplomatic\Support\DiplomaticException;
 use ForsakenThreads\Diplomatic\Support\Helpers;
 
@@ -434,6 +435,9 @@ class Client {
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $multipartData .= $this->convertDataToMultipart($value, !$array_field ? $key : $array_field . '[' . $key . ']');
+            } elseif (is_a($value, CURLFile::class)) {
+                /** @var CURLFile $value */
+                $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=@' . $value->getFilename());;
             } else {
                 $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=' . $value);
             }
@@ -458,6 +462,25 @@ class Client {
             }
         }
         return $multipartData;
+    }
+
+    /**
+     *
+     * Convert files to CURFiles
+     *
+     * @param array $fileData
+     *
+     * @return array
+     */
+    protected function processFiles(array $fileData)
+    {
+        $processed = [];
+        foreach ($fileData as $name => $fileInfo) {
+            if (is_string($fileInfo)) {
+                $processed[$name] = new CURLFile($fileInfo);
+            }
+        }
+        return $processed;
     }
 
     /**
@@ -497,7 +520,13 @@ class Client {
      */
     protected function send($page, $data = [], $method = '-G', $files = [])
     {
-        // TODO: handle files properly
+        if (!empty($files)) {
+            $files = $this->processFiles($files);
+            if (!empty($files)) {
+                $this->setMultipart();
+                $data = array_merge($files, $data);
+            }
+        }
 
         if ($method == '-G' || !$this->isMultipart) {
             // format data as application/x-www-form-urlencoded
