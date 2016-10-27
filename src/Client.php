@@ -14,16 +14,14 @@ class Client {
     // The schema, host, port, and/or path for the request
     protected $destination;
 
+    // Http headers for the request
+    protected $headers = [];
+
     // Boolean that determines whether to ignore SSL errors
     protected $isInsecure = false;
 
-    /**
-     *
-     * @var ResponseHandler
-     *
-     * The response handler
-     */
-    protected $responseHandler;
+    // Boolean that determines whether POST should be done as multipart/form-data or application/x-www-form-urlencoded
+    protected $isMultipart = false;
 
     // Callback handlers and extra arguments for the various response results
     protected $onAnyHandler;
@@ -44,11 +42,19 @@ class Client {
     // Http response version
     protected $responseHttpVersion;
 
+    /**
+     *
+     * @var ResponseHandler
+     *
+     * The response handler
+     */
+    protected $responseHandler;
+
     // Http response headers
     protected $responseHeaders;
 
-    // Http headers for the request
-    protected $headers = [];
+    // the user agent string to set for all requests
+    protected $userAgent;
 
     /**
      *
@@ -64,6 +70,7 @@ class Client {
     {
         $this->setDestination($destination)
             ->setResponseHandler($responseHandler);
+        $this->userAgent = "forsaken-threads/diplomatic wrapping cURL version " . curl_version()['version'];
     }
 
     /**
@@ -83,19 +90,6 @@ class Client {
 
     /**
      *
-     * A CONNECT request
-     *
-     * @param string $page
-     *
-     * @return $this
-     */
-    public function connect($page)
-    {
-        return $this->send($page, [], '-X CONNECT');
-    }
-
-    /**
-     *
      * A DELETE request
      *
      * @param string $page
@@ -103,7 +97,7 @@ class Client {
      *
      * @return $this|Client|mixed
      */
-    public function delete($page, $data = [])
+    public function delete($page, array $data = [])
     {
         return $this->send($page, $data, '-X DELETE');
     }
@@ -117,7 +111,7 @@ class Client {
      *
      * @return $this|Client|mixed
      */
-    public function get($page, $data = [])
+    public function get($page, array $data = [])
     {
         return $this->send($page, $data);
     }
@@ -240,7 +234,7 @@ class Client {
      *
      * @return $this
      */
-    public function patch($page, $data = [], $files = [])
+    public function patch($page, array $data = [], array $files = [])
     {
         return $this->send($page, $data, '-X PATCH', $files);
     }
@@ -255,7 +249,7 @@ class Client {
      *
      * @return $this
      */
-    public function post($page, $data = [], $files = [])
+    public function post($page, array $data = [], array $files = [])
     {
         return $this->send($page, $data, '-X POST', $files);
     }
@@ -270,7 +264,7 @@ class Client {
      *
      * @return $this
      */
-    public function put($page, $data = [], $files = [])
+    public function put($page, array $data = [], array $files = [])
     {
         return $this->send($page, $data, '-X PUT', $files);
     }
@@ -372,6 +366,18 @@ class Client {
 
     /**
      *
+     * Set whether POST data is multipart/form-data
+     * @param bool $multipart
+     * @return $this
+     */
+    public function setMultipart($multipart = true)
+    {
+        $this->isMultipart = (boolean) $multipart;
+        return $this;
+    }
+
+    /**
+     *
      * Set the response handler
      *
      * @param ResponseHandler $responseHandler
@@ -386,15 +392,72 @@ class Client {
 
     /**
      *
-     * A TRACE request
+     * Set the user agent string for all requests
      *
-     * @param string $page
+     * @param $userAgent
      *
      * @return $this
      */
-    public function trace($page)
+    public function setUserAgent($userAgent)
     {
-        return $this->send($page, [], '-X TRACE');
+        $this->userAgent = @(string) $userAgent;
+        return $this;
+    }
+
+    /**
+     *
+     * A TRACE request
+     *
+     * @param string $page
+     * @param array $data
+     * @param array $files
+     *
+     * @return $this
+     */
+    public function trace($page, array $data = [], array $files = [])
+    {
+        return $this->send($page, $data, '-X TRACE', $files);
+    }
+
+    /**
+     *
+     * Convert array to CLI cURL multipart/form-data format
+     *
+     * @param $data
+     * @param bool $array_field
+     *
+     * @return string
+     */
+    protected function convertDataToMultipart($data, $array_field = false)
+    {
+        $multipartData = '';
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $multipartData .= $this->convertDataToMultipart($value, !$array_field ? $key : $array_field . '[' . $key . ']');
+            } else {
+                $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=' . $value);
+            }
+        }
+        return $multipartData;
+    }
+
+    protected function flattenDataToMultipart($data, $baseKey = false)
+    {
+        $multipartData = [];
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $useKey = $baseKey
+                    ? $baseKey . '[' . $key . ']'
+                    : $key;
+                $multipartData = array_merge($multipartData, $this->flattenDataToMultipart($value, $useKey));
+            } else {
+                $useKey = $baseKey
+                    ? $baseKey . '[' . $key . ']'
+                    : $key;
+                $multipartData[$useKey] = $value;
+            }
+        }
+        return $multipartData;
     }
 
     /**
@@ -410,7 +473,7 @@ class Client {
     {
         // This is the first header, which should be providing the Http version info
         if (empty($this->responseHttpVersion)) {
-            $this->responseHttpVersion = $headerString;
+            $this->responseHttpVersion = trim($headerString);
             return mb_strlen($headerString);
         }
 
@@ -436,11 +499,21 @@ class Client {
     {
         // TODO: handle files properly
 
-        // make our data application/x-www-form-urlencoded
-        $data = http_build_query($data);
+        if ($method == '-G' || !$this->isMultipart) {
+            // format data as application/x-www-form-urlencoded
+            $data = http_build_query($data);
+        }
 
-        // initialize our cliCall. the -s options will silence. the -w option adds the Http response code to the output
-        $cliCall = 'curl -s -w "%{http_code}" ' . $method;
+        // initialize our cliCall. the -s option will silence progress. the -S will display an error on failure
+        // the -w option adds the Http response code to the output
+        // the -A option set the user agent string
+        $cliCall = 'curl -Ssw "%{http_code}" ' . $method . ' -A ' . escapeshellarg($this->userAgent);
+
+        // the -D option outputs headers to a file, with - , in this case, being standard out
+        // if this is a HEAD request, though, it's not needed, otherwise the -I option would cause a double output of headers
+        if ($method != '-I') {
+            $cliCall .= ' -D -';
+        }
 
         // setup the headers for curl and the cliCall
         $headers = [];
@@ -450,17 +523,26 @@ class Client {
         }
 
         // if this is not a GET request, we need to add the data to the cliCall
-        if ($method != '-G' && $method != '-I') {
-            $cliCall .= '-d "' . $data . '"';
+        if ($method != '-G' && !empty($data)) {
+            // application/x-www-form-urlencoded can be done like this
+            if (!$this->isMultipart) {
+                $cliCall .= ' -d "' . $data . '"';
+            // multipart-form data like so
+            } else {
+                $cliCall .= $this->convertDataToMultipart($data);
+            }
         }
 
 
         $curl = curl_init($this->destination . $page . ($method == '-G' ? '?' . $data : ''));
 
         if ($this->isInsecure) {
-            $cliCall .= '-k';
+            $cliCall .= ' -k ';
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        } else {
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
         }
 
         // add the page to the destination, and if this is a GET request, the data as a query string
@@ -473,11 +555,12 @@ class Client {
         // TODO: ssl and security type stuff
 
         // basic curl setup stuff
+        curl_setopt($curl, CURLOPT_USERAGENT, $this->userAgent);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($curl, CURLOPT_HEADERFUNCTION, [$this, 'recordResponseHeaders']);
         if ($method != '-G' && $method != '-I') {
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, is_array($data) ? $this->flattenDataToMultipart($data) : $data);
         }
 
         // set the proper request method
@@ -485,8 +568,8 @@ class Client {
             case '-I':
                 curl_setopt($curl, CURLOPT_NOBODY, true);
                 break;
-            case '-X CONNECT':
-                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'CONNECT');
+            case '-X PATCH':
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
                 break;
             case '-X DELETE':
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');

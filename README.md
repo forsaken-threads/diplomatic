@@ -15,10 +15,12 @@ The **Diplomatic** way is to attempt to be discrete at all costs. It should almo
 Handling the request is the easy part, so usage instructions for the *Client* are secondary on this list.  First, we will take a look at the hard part of the request/response pair.  The **Diplomatic** way to handle the response is by injecting an extension of the abstract `ResponseHandler` class into the *Client*.  Read on for more information.
 
 * [Response Handlers](./documentation/ResponseHandler.md)
-
 * [**Diplomatic** Client](./documentation/Client.md)
+* [Appendix](./documentation/Appendix.md)
+
 
 ### Still To Do
 
 * Handle file inputs, currently being rather undiplomatically ignored
+* Support curl_multi
 * Develop usable example *Response Handlers*

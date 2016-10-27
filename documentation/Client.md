@@ -20,7 +20,7 @@ $client->addHeaders([
 
 ### Basic Usage
 
-The simplest way to use the *Client* is to run the request and save the response handler using the `saveResponseHandler()` chained method call.  In a similar fashion, you can save the HTTP response code by method chaining `saveResponseCode()`.  This may seem a bit odd, but roll with it.  It should become clear later why this is the **Diplomatic** way.  So, first you call the particular HTTP method that you want to use - `get`, `post`, `put`, `patch`, `delete`, `head`, `options`, `trace`, or `connect` - and then you chain on the `save` methods you want to use.  **An important note.  These cannot be combined with the `on` methods documented below.  You can only chain `on` handlers *before* the HTTP method, or `save` methods *after* the HTTP method, not both.**
+The simplest way to use the *Client* is to run the request and save the response handler using the `saveResponseHandler()` chained method call.  In a similar fashion, you can save the HTTP response code by method chaining `saveResponseCode()`.  This may seem a bit odd, but roll with it.  It should become clear later why this is the **Diplomatic** way.  So, first you call the particular HTTP method that you want to use - `get`, `post`, `put`, `patch`, `delete`, `head`, `options`, or `trace` - and then you chain on the `save` methods you want to use.  **An important note.  These cannot be combined with the `on` methods documented below.  You can only chain `on` handlers *before* the HTTP method, or `save` methods *after* the HTTP method, not both.**
 
 ```
 <?php
@@ -144,3 +144,4 @@ $lookup = $client->setDestination('http://acme.api')
 ```
 
 * [Response Handlers](./ResponseHandler.md)
+* [Appendix](./Appendix.md)

@@ -147,3 +147,4 @@ $contentType = $handler->info()->getContentType();
 ```
 
 * [**Diplomatic** Client](./Client.md)
+* [Appendix](./Appendix.md)
