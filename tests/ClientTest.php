@@ -55,4 +55,23 @@ class ClientGeneralTest extends TestCase {
         $this->assertContains('X-Diplomatic-Response-Header', array_keys($handler->getHeaders()));
         $this->assertContains('ThisIsADiplomaticTest', $handler->getHeaders());
     }
+
+    public function testInsecureConnection()
+    {
+        /** @var Handler $handler */
+        $this->client->setDestination('https://madlib.tirekickin.com')
+            ->get('/index.php')
+            ->saveResponseHandler($handler)
+            ->saveResponseCode($code);
+        $this->assertEquals('SSL certificate problem: unable to get local issuer certificate', $handler->getRawResponse());
+        $this->assertEquals(0, $code);
+
+        $this->client->insecure()
+            ->get('/index.php')
+            ->saveResponseHandler($handler)
+            ->saveResponseCode($code);
+        $this->assertRegExp('/MAD LIB 3.0/', $handler->getRawResponse());
+        $this->assertEquals(200, $code);
+    }
+
 }

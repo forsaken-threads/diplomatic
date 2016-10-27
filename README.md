@@ -20,6 +20,5 @@ Handling the request is the easy part, so usage instructions for the *Client* ar
 
 ### Still To Do
 
-* Expose methods to handle SSL security so the *Client* can be used in development environments
 * Handle file inputs, currently being rather undiplomatically ignored
 * Develop usable example *Response Handlers*

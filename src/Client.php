@@ -14,6 +14,9 @@ class Client {
     // The schema, host, port, and/or path for the request
     protected $destination;
 
+    // Boolean that determines whether to ignore SSL errors
+    protected $isInsecure = false;
+
     /**
      *
      * @var ResponseHandler
@@ -130,6 +133,12 @@ class Client {
     public function head($page)
     {
         return $this->send($page, [], '-I');
+    }
+
+    public function insecure($isInsecure = true)
+    {
+        $this->isInsecure = (boolean) $isInsecure;
+        return $this;
     }
 
     /**
@@ -445,14 +454,21 @@ class Client {
             $cliCall .= '-d "' . $data . '"';
         }
 
+
+        $curl = curl_init($this->destination . $page . ($method == '-G' ? '?' . $data : ''));
+
+        if ($this->isInsecure) {
+            $cliCall .= '-k';
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        }
+
         // add the page to the destination, and if this is a GET request, the data as a query string
         $cliCall .= ' "' . $this->destination . $page . ($method == '-G' ? '?' . $data : '')  . '"';
 
         // reset for the new response coming up
         $this->responseHttpVersion = '';
         $this->responseHeaders = [];
-
-        $curl = curl_init($this->destination . $page . ($method == '-G' ? '?' . $data : ''));
 
         // TODO: ssl and security type stuff
 
