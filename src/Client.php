@@ -3,6 +3,7 @@
 use CURLFile;
 use ForsakenThreads\Diplomatic\Support\DiplomaticException;
 use ForsakenThreads\Diplomatic\Support\Helpers;
+use SplFileInfo;
 
 class Client {
 
@@ -34,25 +35,25 @@ class Client {
     protected $onFailureHandler;
     protected $onFailureHandlerExtraArgs;
 
-    protected $onSuccessHandlerExtraArgs;
     protected $onSuccessHandler;
+    protected $onSuccessHandlerExtraArgs;
 
     // Boolean that determines whether to reset all handlers after a request
     protected $resetHandlers = true;
 
-    // Http response version
-    protected $responseHttpVersion;
-
     /**
      *
-     * @var ResponseHandler
-     *
      * The response handler
+     *
+     * @var ResponseHandler
      */
     protected $responseHandler;
 
     // Http response headers
     protected $responseHeaders;
+
+    // Http response version
+    protected $responseHttpVersion;
 
     // the user agent string to set for all requests
     protected $userAgent;
@@ -357,7 +358,7 @@ class Client {
      *
      * @param array $headers
      *
-     * @return Client
+     * @return $this
      */
     public function setHeaders(array $headers)
     {
@@ -437,7 +438,7 @@ class Client {
                 $multipartData .= $this->convertDataToMultipart($value, !$array_field ? $key : $array_field . '[' . $key . ']');
             } elseif (is_a($value, CURLFile::class)) {
                 /** @var CURLFile $value */
-                $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=@' . $value->getFilename());;
+                $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=@"' . addcslashes($value->getFilename(), '"\\') . '";type=' . $value->getMimeType() . ';filename="' . addcslashes($value->getPostFilename(), '"\\') . '"');
             } else {
                 $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=' . $value);
             }
@@ -445,6 +446,15 @@ class Client {
         return $multipartData;
     }
 
+    /**
+     *
+     * Flattens nested arrays to a single depth array
+     *
+     * @param $data
+     * @param bool $baseKey
+     *
+     * @return array
+     */
     protected function flattenDataToMultipart($data, $baseKey = false)
     {
         $multipartData = [];
@@ -466,7 +476,34 @@ class Client {
 
     /**
      *
-     * Convert files to CURFiles
+     * Instantiate a CURLFile based on parameters provided. Accepts the following:
+     * string: path to file
+     * object: SplFileInfo or SplFileObject
+     *
+     * @param mixed $fileInfo
+     * @param string $mimeType
+     * @param null $postName
+     *
+     * @return CURLFile
+     */
+    protected function getCurlFile($fileInfo, $mimeType = 'application/octet-stream', $postName = null)
+    {
+        if (is_string($fileInfo)) {
+            return new CURLFile($fileInfo, $mimeType != null ? $mimeType : 'application/octet-stream', $postName != null ? $postName : $fileInfo);
+        }
+
+        if (is_a($fileInfo, SplFileInfo::class)) {
+            /** @var SplFileInfo $fileInfo */
+            return new CURLFile($fileInfo->getPathname(), $mimeType != null ? $mimeType : 'application/octet-stream', $postName != null ? $postName : $fileInfo->getFilename());
+        }
+
+        // this will cause an error, but diplomatically not throw an exception.
+        return new CURLFile('');
+    }
+
+    /**
+     *
+     * Convert files to CURLFiles
      *
      * @param array $fileData
      *
@@ -476,9 +513,11 @@ class Client {
     {
         $processed = [];
         foreach ($fileData as $name => $fileInfo) {
-            if (is_string($fileInfo)) {
-                $processed[$name] = new CURLFile($fileInfo);
+            if (is_array($fileInfo)) {
+                $processed[$name] = $this->getCurlFile($fileInfo[0], $fileInfo[1], isset($fileInfo[2]) ? $fileInfo[2] : null);
+                continue;
             }
+            $processed[$name] = $this->getCurlFile($fileInfo);
         }
         return $processed;
     }

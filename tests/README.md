@@ -5,3 +5,5 @@ The tests require a local API server running on `localhost:8888` that serves the
 ```
 php -S localhost:8888 -t tests/api-server
 ````
+
+It also requires the existence of the CLI version of `curl` and assumes that the executable is can be found in the current PATH environment.

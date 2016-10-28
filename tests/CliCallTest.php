@@ -85,30 +85,6 @@ class CliCallTest extends TestCase {
 
     public function testEchoData()
     {
-        $getData = [
-            'a' => 'simple variable',
-            'b' => [
-                'complex',
-                'variable',
-                'nested' => [
-                    'deeply',
-                    'deeply' => ['nested'],
-                ],
-            ],
-        ];
-
-        $postData = [
-            'c' => 'simple variable',
-            'd' => [
-                'complex',
-                'variable',
-                'nested' => [
-                    'deeply',
-                    'deeply' => ['nested'],
-                ],
-            ],
-        ];
-
         /** @var Handler $handler */
         $this->client->head('/echo-data.php')
             ->saveCall($cliCall)
@@ -122,37 +98,37 @@ class CliCallTest extends TestCase {
         $this->assertResultsEqual($cliCall, $handler);
         $this->assertStringStartsWith('OPTIONS', $handler->getRawResponse());
 
-        $this->client->get('/echo-data.php', $getData)
+        $this->client->get('/echo-data.php', $this->getData)
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         $this->assertStringStartsWith('GET', $handler->getRawResponse());
 
-        $this->client->delete('/echo-data.php?' . http_build_query($getData), $postData)
+        $this->client->delete('/echo-data.php?' . http_build_query($this->getData), $this->postData)
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         $this->assertStringStartsWith('DELETE', $handler->getRawResponse());
 
-        $this->client->post('/echo-data.php?' . http_build_query($getData), $postData)
+        $this->client->post('/echo-data.php?' . http_build_query($this->getData), $this->postData)
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         $this->assertStringStartsWith('POST', $handler->getRawResponse());
 
-        $this->client->put('/echo-data.php?' . http_build_query($getData), $postData)
+        $this->client->put('/echo-data.php?' . http_build_query($this->getData), $this->postData)
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         $this->assertStringStartsWith('PUT', $handler->getRawResponse());
 
-        $this->client->patch('/echo-data.php?' . http_build_query($getData), $postData)
+        $this->client->patch('/echo-data.php?' . http_build_query($this->getData), $this->postData)
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         $this->assertStringStartsWith('PATCH', $handler->getRawResponse());
 
-        $this->client->trace('/echo-data.php?' . http_build_query($getData), $postData)
+        $this->client->trace('/echo-data.php?' . http_build_query($this->getData), $this->postData)
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
@@ -160,7 +136,7 @@ class CliCallTest extends TestCase {
 
         $this->client
             ->setMultipart()
-            ->post('/echo-data.php?' . http_build_query($getData), $postData)
+            ->post('/echo-data.php?' . http_build_query($this->getData), $this->postData)
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
