@@ -27,4 +27,4 @@ Handling the request is the easy part, so usage instructions for the *Client* ar
 
 ### Sami Documentation
 
-Check out [diplomatic.forsaken-threads.com]() for the lowdown.
+Check out [diplomatic.forsaken-threads.com](http://diplomatic.forsaken-threads.com) for the lowdown.
