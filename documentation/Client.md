@@ -18,6 +18,50 @@ $client->addHeaders([
 ]);
 ```
 
+### File Uploads
+
+For those HTTP methods that accept file uploads - `post`, `put`, `patch`, and `trace` - you pass an associative array to the method where the keys are the name of the field in the `POST` data and the values take one of two forms: a) a string that contains the filename or an `SplFileInfo` object or extension, or b) an array that contains a filename/object like (a) and two optional additional elements, a mime-type and a name for the uploaded file.
+
+```
+<?php
+
+// first method automatically leads to mime-type default of application/octet-stream and uploaded file name the same as the referenced file, in this case 'file'
+$files = ['uploaded_file' => '/path/to/file'];
+
+// second method, explicitly provide mime-type and uploaded file name
+$files = [
+    'uploaded_file' => ['/path/to/file', 'application/pdf', 'received_file_name.pdf']
+];
+
+// you can skip the mime-type option by sending null
+$files = [
+    'uploaded_file' => ['/path/to/file', null, 'received_file_name.pdf']
+]
+
+// or leave the uploaded file name as the default by leaving it out
+$files = [
+    'uploaded_file' => ['/path/to/file', 'application/pdf']
+]
+
+// or, in theory, sending null
+$files = [
+    'uploaded_file' => ['/path/to/file', 'application/pdf', null]
+]
+
+// also, any of the '/path/to/file' strings above can be substituted with anything that extends SplFileInfo, e.g. Symfony's File object
+/** @var Symfony\Component\HttpFoundation\File\File $file */
+$files = ['uploaded_file' => $file];
+
+// or
+$files = [
+    'uploaded_file' => [$file, 'application/pdf', 'received_file_name.pdf']
+];
+
+// finally, the array is passed as the third argument to the 'Client' method call
+$client->post('/api/endpoint', $postData, $files);
+
+```
+
 ### Basic Usage
 
 The simplest way to use the *Client* is to run the request and save the response handler using the `saveResponseHandler()` chained method call.  In a similar fashion, you can save the HTTP response code by method chaining `saveResponseCode()`.  This may seem a bit odd, but roll with it.  It should become clear later why this is the **Diplomatic** way.  So, first you call the particular HTTP method that you want to use - `get`, `post`, `put`, `patch`, `delete`, `head`, `options`, or `trace` - and then you chain on the `save` methods you want to use.  **An important note.  These cannot be combined with the `on` methods documented below.  You can only chain `on` handlers *before* the HTTP method, or `save` methods *after* the HTTP method, not both.**

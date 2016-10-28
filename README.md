@@ -21,6 +21,6 @@ Handling the request is the easy part, so usage instructions for the *Client* ar
 
 ### Still To Do
 
-* Handle file inputs, currently being rather undiplomatically ignored
 * Support curl_multi
 * Develop usable example *Response Handlers*
+* Allow custom HTTP methods
