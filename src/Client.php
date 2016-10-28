@@ -61,7 +61,8 @@ class Client {
     /**
      *
      * Client constructor
-     * The scheme for the destination defaults to https:// if it is not provided
+     *
+     * The scheme for the destination defaults to `https://` if it is not provided
      *
      * @param $destination
      * @param ResponseHandler $responseHandler
@@ -92,12 +93,12 @@ class Client {
 
     /**
      *
-     * A DELETE request
+     * A `DELETE` request
      *
      * @param string $page
      * @param array $data
      *
-     * @return $this|Client|mixed
+     * @return $this|mixed
      */
     public function delete($page, array $data = [])
     {
@@ -106,12 +107,12 @@ class Client {
 
     /**
      *
-     * A GET request
+     * A `GET` request
      *
      * @param string $page
      * @param array $data
      *
-     * @return $this|Client|mixed
+     * @return $this|mixed
      */
     public function get($page, array $data = [])
     {
@@ -120,11 +121,11 @@ class Client {
 
     /**
      *
-     * A HEAD request
+     * A `HEAD` request
      *
      * @param string $page
      *
-     * @return $this|Client|mixed
+     * @return $this|mixed
      */
     public function head($page)
     {
@@ -139,9 +140,10 @@ class Client {
 
     /**
      *
-     * Register a callback (or anything but `null`) for any request result - supersedes all other handlers
-     * The callback will receive the response handler as the first argument
-     * Optional extra arguments may be passed here that will also be provided to the callback when invoked
+     * Register a callback (or anything but `null`) for any request result - acts as a catch-all for missing handlers
+     *
+     * The callback will receive the response handler as the first argument.
+     * Optional extra arguments may be passed here that will also be provided to the callback when invoked.
      *
      * @param mixed $callback
      *
@@ -159,8 +161,9 @@ class Client {
     /**
      *
      * Register a callback (or anything but `null`) for an errored response
-     * The callback will receive the response handler as the first argument
-     * Optional extra arguments may be passed here that will also be provided to the callback when invoked
+     *
+     * The callback will receive the response handler as the first argument.
+     * Optional extra arguments may be passed here that will also be provided to the callback when invoked.
      *
      * @param mixed $callback
      *
@@ -178,8 +181,9 @@ class Client {
     /**
      *
      * Register a callback (or anything but `null`) for a failed response
-     * The callback will receive the response handler as the first argument
-     * Optional extra arguments may be passed here that will also be provided to the callback when invoked
+     *
+     * The callback will receive the response handler as the first argument.
+     * Optional extra arguments may be passed here that will also be provided to the callback when invoked.
      *
      * @param mixed $callback
      *
@@ -197,8 +201,9 @@ class Client {
     /**
      *
      * Register a callback (or anything but `null`) for a successful response
+     *
      * The callback will receive the response handler as the first argument
-     * Optional extra arguments may be passed here that will also be provided to the callback when invoked
+     * Optional extra arguments may be passed here that will also be provided to the callback when invoked.
      *
      * @param mixed $callback
      *
@@ -215,11 +220,11 @@ class Client {
 
     /**
      *
-     * An OPTIONS request
+     * An `OPTIONS` request
      *
      * @param string $page
      *
-     * @return $this
+     * @return $this|mixed
      */
     public function options($page)
     {
@@ -228,13 +233,13 @@ class Client {
 
     /**
      *
-     * A PATCH request
+     * A `PATCH` request
      *
      * @param string $page
      * @param array $data
      * @param array $files
      *
-     * @return $this
+     * @return $this|mixed
      */
     public function patch($page, array $data = [], array $files = [])
     {
@@ -243,13 +248,13 @@ class Client {
 
     /**
      *
-     * A POST request
+     * A `POST` request
      *
      * @param string $page
      * @param array $data
      * @param array $files
      *
-     * @return $this
+     * @return $this|mixed
      */
     public function post($page, array $data = [], array $files = [])
     {
@@ -258,13 +263,13 @@ class Client {
 
     /**
      *
-     * A PUT request
+     * A `PUT` request
      *
      * @param string $page
      * @param array $data
      * @param array $files
      *
-     * @return $this
+     * @return $this|mixed
      */
     public function put($page, array $data = [], array $files = [])
     {
@@ -273,7 +278,7 @@ class Client {
 
     /**
      *
-     * Set the resetHandlers property
+     * Set the `resetHandlers` property
      *
      * @param $reset
      *
@@ -287,7 +292,7 @@ class Client {
 
     /**
      *
-     * Save the cliCall into the provided variable
+     * Save the `cliCall` into the provided variable
      *
      * @param $cliCall
      *
@@ -368,7 +373,7 @@ class Client {
 
     /**
      *
-     * Set whether POST data is multipart/form-data
+     * Set whether `POST data` is multipart/form-data
      * @param bool $multipart
      * @return $this
      */
@@ -408,13 +413,13 @@ class Client {
 
     /**
      *
-     * A TRACE request
+     * A `TRACE` request
      *
      * @param string $page
      * @param array $data
      * @param array $files
      *
-     * @return $this
+     * @return $this|mixed
      */
     public function trace($page, array $data = [], array $files = [])
     {
@@ -476,8 +481,12 @@ class Client {
 
     /**
      *
-     * Instantiate a CURLFile based on parameters provided. Accepts the following:
+     * Instantiate a CURLFile based on parameters provided
+     *
+     * Accepts the following:
+     *
      * string: path to file
+     *
      * object: SplFileInfo or SplFileObject
      *
      * @param mixed $fileInfo

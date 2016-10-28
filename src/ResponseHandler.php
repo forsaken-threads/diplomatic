@@ -47,7 +47,7 @@ abstract class ResponseHandler {
 
     /**
      *
-     * Check to see if the response was successful (true) or failed/errored (false)
+     * Check to see if the response was successful (`true`) or failed/errored (`false`)
      *
      * @return boolean
      */
@@ -121,7 +121,7 @@ abstract class ResponseHandler {
 
     /**
      *
-     * Provide access to the curlInfo property
+     * Provide access to the `curlInfo` property
      *
      * @return CurlInfo
      */
@@ -132,7 +132,7 @@ abstract class ResponseHandler {
 
     /**
      *
-     * Called by the Client to initialize the response handler
+     * Called by the `Client` to initialize the response handler
      *
      * @param string $rawResponse
      * @param string $htmlVersion
@@ -170,9 +170,11 @@ abstract class ResponseHandler {
 
     /**
      *
-     * Register a filter callback.  These are called after the response handler is initialized by the Client
-     * The callback will receive the raw response as its first argument
-     * Optional extra arguments may be passed here that will also be forwarded to the filter when invoked
+     * Register a filter callback.
+     *
+     * These are called after the response handler is initialized by the `Client`.
+     * The callback will receive the raw response as its first argument.
+     * Optional extra arguments may be passed here that will also be forwarded to the filter when invoked.
      *
      * @param callable $callable
      *

@@ -8,6 +8,12 @@ class CallableArgumentsPair {
     /** @var array */
     protected $arguments;
 
+    /**
+     *
+     * Accepts an array of arguments, normally the result of `func_get_args()`
+     *
+     * @param $func_args
+     */
     public function __construct($func_args)
     {
         $callable = array_shift($func_args);

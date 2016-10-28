@@ -1,6 +1,6 @@
 # Diplomatic
 
-### A diplomatic cURL wrapper for PHP
+### A diplomatic cURL wrapper for API calls
 
 This is a practical, yet sophisticated, HTTP client for making API calls and parsing their responses.  Some of the basic features are *Response Handler* dependency injection, callback registration for the three basic response results - errored, failed, and successful - and the ability to print out a CLI version of the underlying cURL call for the ultimate in hands on debugging.
 

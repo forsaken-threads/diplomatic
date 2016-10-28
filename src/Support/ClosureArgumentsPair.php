@@ -10,10 +10,17 @@ class ClosureArgumentsPair {
     /** @var array */
     protected $arguments;
 
-    public function __construct($closure, $arguments = [])
+    /**
+     *
+     * Accepts an array of arguments, normally the result of `func_get_args()`
+     *
+     * @param $func_args
+         */
+    public function __construct($func_args)
     {
+        $closure = array_shift($func_args);
         $this->closure = $closure;
-        $this->arguments = $arguments;
+        $this->arguments = $func_args;
     }
 
     /**
