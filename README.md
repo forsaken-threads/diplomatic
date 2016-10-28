@@ -24,3 +24,7 @@ Handling the request is the easy part, so usage instructions for the *Client* ar
 * Support curl_multi
 * Develop usable example *Response Handlers*
 * Allow custom HTTP methods
+
+### Sami Documentation
+
+Check out [diplomatic.forsaken-threads.com]() for the lowdown.
