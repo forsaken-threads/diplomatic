@@ -62,6 +62,20 @@ $client->post('/api/endpoint', $postData, $files);
 
 ```
 
+### Data Formats
+
+You'll see in the sections below that you can send data using methods named after their respect HTTP verbs like `get()` and `post()`.  There are two ways to send this data:
+
+1. as an associative array that will be properly encoded as
+    * `application/x-form-www-urlencoded`
+    * `multipart/form-data`
+    * URL query string
+2. as a string in whatever format you want, JSON, XML, plain text, or otherwise, that is sent as the body of the HTTP request
+
+When calling these methods, you can pass your data in either of those two ways.  The only method that will accept both ways is `get()` which can take an associative array that gets appended to the URL as a query string and a string that gets sent as the body of the request.
+
+**Important note. When sending string content as the body of the request, you most likely will have to add a `Content-Type` header to indicate to the receiving server what kind of request you are making, e.g. `application/json`.**
+
 ### Basic Usage
 
 The simplest way to use the *Client* is to run the request and save the response handler using the `saveResponseHandler()` chained method call.  In a similar fashion, you can save the HTTP response code by method chaining `saveResponseCode()`.  This may seem a bit odd, but roll with it.  It should become clear later why this is the **Diplomatic** way.  So, first you call the particular HTTP method that you want to use - `get`, `post`, `put`, `patch`, `delete`, `head`, `options`, or `trace` - and then you chain on the `save` methods you want to use.  **An important note.  These cannot be combined with the `on` methods documented below.  You can only chain `on` handlers *before* the HTTP method, or `save` methods *after* the HTTP method, not both.**

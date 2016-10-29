@@ -11,11 +11,14 @@ class CliCallTest extends TestCase {
     /** @var Client */
     protected $client;
 
+    protected $stringData;
+
     public function setup()
     {
         $handler = new Handler();
         $handler->filter([BasicFilters::class, 'json'], true);
         $this->client = new Client('http://localhost:8888', $handler);
+        $this->stringData = json_encode($this->getData);
     }
 
     public function testAddSetHeaders()
@@ -140,6 +143,53 @@ class CliCallTest extends TestCase {
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
+    }
+
+    public function testEchoBody()
+    {
+        /** @var Handler $handler */
+        $this->client->setHeaders(['Content-type' => 'application/json']);
+        $this->client->get('/echo-data.php', $this->getData, $this->stringData)
+            ->saveCall($cliCall)
+            ->saveResponseHandler($handler);
+        $this->assertResultsEqual($cliCall, $handler);
+        $this->assertStringStartsWith('GET', $handler->getRawResponse());
+
+        $this->client->get('/echo-data.php', $this->stringData)
+            ->saveCall($cliCall)
+            ->saveResponseHandler($handler);
+        $this->assertResultsEqual($cliCall, $handler);
+        $this->assertStringStartsWith('GET', $handler->getRawResponse());
+
+        $this->client->delete('/echo-data.php?' . http_build_query($this->getData), $this->stringData)
+            ->saveCall($cliCall)
+            ->saveResponseHandler($handler);
+        $this->assertResultsEqual($cliCall, $handler);
+        $this->assertStringStartsWith('DELETE', $handler->getRawResponse());
+
+        $this->client->post('/echo-data.php?' . http_build_query($this->getData), $this->stringData)
+            ->saveCall($cliCall)
+            ->saveResponseHandler($handler);
+        $this->assertResultsEqual($cliCall, $handler);
+        $this->assertStringStartsWith('POST', $handler->getRawResponse());
+
+        $this->client->put('/echo-data.php?' . http_build_query($this->getData), $this->stringData)
+            ->saveCall($cliCall)
+            ->saveResponseHandler($handler);
+        $this->assertResultsEqual($cliCall, $handler);
+        $this->assertStringStartsWith('PUT', $handler->getRawResponse());
+
+        $this->client->patch('/echo-data.php?' . http_build_query($this->getData), $this->stringData)
+            ->saveCall($cliCall)
+            ->saveResponseHandler($handler);
+        $this->assertResultsEqual($cliCall, $handler);
+        $this->assertStringStartsWith('PATCH', $handler->getRawResponse());
+
+        $this->client->trace('/echo-data.php?' . http_build_query($this->getData), $this->stringData)
+            ->saveCall($cliCall)
+            ->saveResponseHandler($handler);
+        $this->assertResultsEqual($cliCall, $handler);
+        $this->assertStringStartsWith('TRACE', $handler->getRawResponse());
     }
 
 }

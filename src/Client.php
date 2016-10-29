@@ -7,6 +7,9 @@ use SplFileInfo;
 
 class Client {
 
+    // The body of the request, only used for `GET` requests, otherwise body is sent as `$data`
+    protected $body = '';
+
     // An equivalent of the request as a CLI curl call
     protected $cliCall;
 
@@ -96,11 +99,11 @@ class Client {
      * A `DELETE` request
      *
      * @param string $page
-     * @param array $data
+     * @param array|string $data
      *
      * @return $this|mixed
      */
-    public function delete($page, array $data = [])
+    public function delete($page, $data = [])
     {
         return $this->send($page, $data, '-X DELETE');
     }
@@ -109,13 +112,24 @@ class Client {
      *
      * A `GET` request
      *
+     * To send query string parameters, `$data` must be an associative array.
+     * To send only a body, `$data` can be a string, and the `$body` argument will be ignored.
+     * Of course, to use both, send an array and a string.
+     *
      * @param string $page
-     * @param array $data
+     * @param array|string $data
+     * @param string $body
      *
      * @return $this|mixed
      */
-    public function get($page, array $data = [])
+    public function get($page, $data = [], $body = '')
     {
+        if (is_string($data)) {
+            $this->body = $data;
+            $data = [];
+        } else {
+            $this->body = $body;
+        }
         return $this->send($page, $data);
     }
 
@@ -236,12 +250,12 @@ class Client {
      * A `PATCH` request
      *
      * @param string $page
-     * @param array $data
+     * @param array|string $data
      * @param array $files
      *
      * @return $this|mixed
      */
-    public function patch($page, array $data = [], array $files = [])
+    public function patch($page, $data = [], array $files = [])
     {
         return $this->send($page, $data, '-X PATCH', $files);
     }
@@ -251,12 +265,12 @@ class Client {
      * A `POST` request
      *
      * @param string $page
-     * @param array $data
+     * @param array|string $data
      * @param array $files
      *
      * @return $this|mixed
      */
-    public function post($page, array $data = [], array $files = [])
+    public function post($page, $data = [], array $files = [])
     {
         return $this->send($page, $data, '-X POST', $files);
     }
@@ -266,12 +280,12 @@ class Client {
      * A `PUT` request
      *
      * @param string $page
-     * @param array $data
+     * @param array|string $data
      * @param array $files
      *
      * @return $this|mixed
      */
-    public function put($page, array $data = [], array $files = [])
+    public function put($page, $data = [], array $files = [])
     {
         return $this->send($page, $data, '-X PUT', $files);
     }
@@ -416,12 +430,12 @@ class Client {
      * A `TRACE` request
      *
      * @param string $page
-     * @param array $data
+     * @param array|string $data
      * @param array $files
      *
      * @return $this|mixed
      */
-    public function trace($page, array $data = [], array $files = [])
+    public function trace($page, $data = [], array $files = [])
     {
         return $this->send($page, $data, '-X TRACE', $files);
     }
@@ -560,7 +574,7 @@ class Client {
      * Send the request
      *
      * @param string $page
-     * @param array $data
+     * @param array|string $data
      * @param string $method
      * @param array $files
      *
@@ -568,6 +582,14 @@ class Client {
      */
     protected function send($page, $data = [], $method = '-G', $files = [])
     {
+        // initialize the request body. either it was supplied as data, or it's empty
+        if (!is_string($data)) {
+            $body = $this->body;
+        } else {
+            $body = $data;
+            $data = [];
+        }
+
         if (!empty($files)) {
             $files = $this->processFiles($files);
             if (!empty($files)) {
@@ -576,18 +598,35 @@ class Client {
             }
         }
 
-        if ($method == '-G' || !$this->isMultipart) {
-            // format data as application/x-www-form-urlencoded
-            $data = http_build_query($data);
-        }
-
         // initialize our cliCall. the -s option will silence progress. the -S will display an error on failure
         // the -w option adds the Http response code to the output
         // the -A option set the user agent string
-        $cliCall = 'curl -Ssw "%{http_code}" ' . $method . ' -A ' . escapeshellarg($this->userAgent);
+        $cliCall = 'curl -Ssw "%{http_code}" ' . ($method == '-G' && !empty($body) ? '-X GET' : $method) . ' -A ' . escapeshellarg($this->userAgent);
+
+        if (!empty($data)) {
+            // if method is `GET` or this is a multipart request, we need to urlencode `$data`
+            if ($method == '-G' || !$this->isMultipart) {
+                // format data as application/x-www-form-urlencoded
+                $data = http_build_query($data);
+
+                // with method `GET`, the `$data` gets appended to the query string which will happen later
+                // if not `GET` however, we need to add the `$data` for non-multipart requests
+                if ($method != '-G') {
+                    $cliCall .= ' -d ' . escapeshellarg($data);
+                }
+            // if this is not a `GET` request and it is multipart, we need to add the data to the cliCall
+            } else {
+                $cliCall .= $this->convertDataToMultipart($data);
+            }
+        }
+
+        // we need to send the body
+        if (!empty($body)) {
+            $cliCall.= ' -d ' . escapeshellarg($body);
+        }
 
         // the -D option outputs headers to a file, with - , in this case, being standard out
-        // if this is a HEAD request, though, it's not needed, otherwise the -I option would cause a double output of headers
+        // if this is a `HEAD` request, though, it's not needed, otherwise the -I option would cause a double output of headers
         if ($method != '-I') {
             $cliCall .= ' -D -';
         }
@@ -599,19 +638,7 @@ class Client {
             $headers[] = $header . ': ' . $value;
         }
 
-        // if this is not a GET request, we need to add the data to the cliCall
-        if ($method != '-G' && !empty($data)) {
-            // application/x-www-form-urlencoded can be done like this
-            if (!$this->isMultipart) {
-                $cliCall .= ' -d "' . $data . '"';
-            // multipart-form data like so
-            } else {
-                $cliCall .= $this->convertDataToMultipart($data);
-            }
-        }
-
-
-        $curl = curl_init($this->destination . $page . ($method == '-G' ? '?' . $data : ''));
+        $curl = curl_init($this->destination . $page . ($method == '-G' && !empty($data) ? '?' . $data : ''));
 
         if ($this->isInsecure) {
             $cliCall .= ' -k ';
@@ -623,21 +650,32 @@ class Client {
         }
 
         // add the page to the destination, and if this is a GET request, the data as a query string
-        $cliCall .= ' "' . $this->destination . $page . ($method == '-G' ? '?' . $data : '')  . '"';
+        $cliCall .= ' "' . $this->destination . $page . ($method == '-G' && !empty($data) ? '?' . $data : '')  . '"';
 
         // reset for the new response coming up
         $this->responseHttpVersion = '';
         $this->responseHeaders = [];
-
-        // TODO: ssl and security type stuff
 
         // basic curl setup stuff
         curl_setopt($curl, CURLOPT_USERAGENT, $this->userAgent);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($curl, CURLOPT_HEADERFUNCTION, [$this, 'recordResponseHeaders']);
+
+        // We need to add the data to the request
         if ($method != '-G' && $method != '-I') {
-            curl_setopt($curl, CURLOPT_POSTFIELDS, is_array($data) ? $this->flattenDataToMultipart($data) : $data);
+            // if non-empty and an array, then `$data` needs to be flattened to a single dimensional array
+            if (!empty($data) && is_array($data)) {
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $this->flattenDataToMultipart($data));
+            // if `$data` is non-empty string, we just add it
+            } elseif (!empty($data)) {
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            // otherwise, if `$body` is non-empty, we add it
+            } elseif (!empty($body)) {
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+            }
+        } elseif ($method == '-G' && !empty($body)) {
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
         }
 
         // set the proper request method
@@ -686,6 +724,9 @@ class Client {
         // set cliCall and code in case the Developer wants to save them as part of a chained method call
         $this->cliCall = $cliCall;
         $this->code = $curlInfo['http_code'];
+
+        // reset the request body
+        $this->body = '';
 
         // initialize the response handler with the basics
         $this->responseHandler->initialize($rawResponse, $this->responseHttpVersion, $this->responseHeaders, $curlInfo['http_code'], $curlInfo, $cliCall);

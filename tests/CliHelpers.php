@@ -10,8 +10,8 @@ trait CliHelpers {
             'complex',
             'variable',
             'nested' => [
-                'deeply', '
-                deeply' => ['nested'],
+                'deeply',
+                'deeply' => ['nested'],
             ],
         ],
     ];
