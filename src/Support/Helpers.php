@@ -19,7 +19,8 @@ class Helpers {
         $array = array_shift($args);
 
         // add each element to the beginning of the working array, preserving order
-        while ($arg = array_shift($args)) {
+        while (count($args)) {
+            $arg = array_shift($args);
             array_unshift($array, $arg);
         }
 
