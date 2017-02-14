@@ -41,6 +41,9 @@ class Client {
     protected $onSuccessHandler;
     protected $onSuccessHandlerExtraArgs;
 
+    // The raw response from the curl call
+    protected $rawResponse;
+
     // Boolean that determines whether to reset all handlers after a request
     protected $resetHandlers = true;
 
@@ -68,11 +71,11 @@ class Client {
      * The scheme for the destination defaults to `https://` if it is not provided
      *
      * @param $destination
-     * @param ResponseHandler $responseHandler
+     * @param null|ResponseHandler $responseHandler
      *
      * @throws DiplomaticException
      */
-    public function __construct($destination, ResponseHandler $responseHandler)
+    public function __construct($destination, ResponseHandler $responseHandler = null)
     {
         $this->setDestination($destination)
             ->setResponseHandler($responseHandler);
@@ -319,6 +322,32 @@ class Client {
     }
 
     /**
+     * Save the raw response into the provided variable
+     *
+     * @param $rawResponse
+     * @return $this
+     */
+    public function saveRawResponse(&$rawResponse)
+    {
+        $rawResponse = $this->rawResponse;
+        return $this;
+    }
+
+    /**
+     *
+     * Save the Http code into the provided variable
+     *
+     * @param $code
+     *
+     * @return $this
+     */
+    public function saveResponseCode(&$code)
+    {
+        $code = $this->code;
+        return $this;
+    }
+
+    /**
      *
      * Save the response handler into the provided variable
      *
@@ -334,15 +363,14 @@ class Client {
 
     /**
      *
-     * Save the Http code into the provided variable
+     * Save the response headers into the provided variable
      *
-     * @param $code
-     *
+     * @param $responseHeaders
      * @return $this
      */
-    public function saveResponseCode(&$code)
+    public function saveResponseHeaders(&$responseHeaders)
     {
-        $code = $this->code;
+        $responseHeaders = $this->responseHeaders;
         return $this;
     }
 
@@ -653,6 +681,7 @@ class Client {
         $cliCall .= ' "' . $this->destination . $page . ($method == '-G' && !empty($data) ? '?' . $data : '')  . '"';
 
         // reset for the new response coming up
+        $this->rawResponse = null;
         $this->responseHttpVersion = '';
         $this->responseHeaders = [];
 
@@ -708,11 +737,11 @@ class Client {
         }
 
         // execute the request
-        $rawResponse = curl_exec($curl);
+        $this->rawResponse = curl_exec($curl);
 
         // if errored, we set the rawResponse to the curl error
         if (curl_errno($curl)) {
-            $rawResponse = curl_error($curl);
+            $this->rawResponse = curl_error($curl);
         }
 
         // save the info from curl
@@ -728,8 +757,13 @@ class Client {
         // reset the request body
         $this->body = '';
 
+        // no response handler provided, so we bail early
+        if (empty($this->responseHandler)) {
+            return $this;
+        }
+
         // initialize the response handler with the basics
-        $this->responseHandler->initialize($rawResponse, $this->responseHttpVersion, $this->responseHeaders, $curlInfo['http_code'], $curlInfo, $cliCall);
+        $this->responseHandler->initialize($this->rawResponse, $this->responseHttpVersion, $this->responseHeaders, $curlInfo['http_code'], $curlInfo, $cliCall);
 
         // check if the response handler is self-handling
         if ($this->responseHandler instanceof SelfHandling) {

@@ -18,6 +18,7 @@ Handling the request is the easy part, so usage instructions for the *Client* ar
 * [**Diplomatic** Client](./documentation/Client.md)
 * [Appendix](./documentation/Appendix.md)
 
+Of course, if you really don't care about the response, you can also leave out the `ResponseHandler` implementation and just start sending requests.  See the *Client* docs for details.
 
 ### Still To Do
 

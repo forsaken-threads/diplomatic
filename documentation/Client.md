@@ -1,6 +1,10 @@
 
 ## The **Diplomatic** *Client*
 
+### No Responses Needed? No Problem!
+
+If you are just looking for a clean way to send requests, and you really don't care about the responses from the server, simply instantiate a *Client* without the second argument.  All of the response related features will be disabled (e.g. the `on` handlers), but everything else will still work fine, even the ability to grab the HTTP status code.
+
 ### Setup
 
 Instantiate a *Client* by calling the constructor and supplying a `destination` and an instance of a class that extends `ResponseHandler`.  The `destination` must be, at a minimum, a domain name.  If you do not provide a scheme, it will default to using `https://`.  Once instantiated, you can add custom headers to every request the *Client* makes by calling `addHeaders` and providing an associative array of header type/values.  We will continue with the Markit On Demand examples started in the *Response Handler* section. 

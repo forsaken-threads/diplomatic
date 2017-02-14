@@ -20,10 +20,14 @@ class ClientSaveMethodsTest extends TestCase {
         $this->client
             ->get('/errored.php')
             ->saveResponseHandler($handler)
-            ->saveResponseCode($code);
+            ->saveResponseCode($code)
+            ->saveResponseHeaders($headers)
+            ->saveRawResponse($response);
         $this->assertTrue($handler->wasErrored());
         $this->assertEquals(500, $handler->getCode());
         $this->assertEquals($code, $handler->getCode());
+        $this->assertEquals($headers, $handler->getHeaders());
+        $this->assertEquals($response, $handler->getRawResponse());
     }
 
     public function testFailedResponse()
@@ -32,10 +36,14 @@ class ClientSaveMethodsTest extends TestCase {
         $this->client
             ->get('/failed.php')
             ->saveResponseHandler($handler)
-            ->saveResponseCode($code);
+            ->saveResponseCode($code)
+            ->saveResponseHeaders($headers)
+            ->saveRawResponse($response);
         $this->assertTrue($handler->wasFailed());
         $this->assertEquals(422, $handler->getCode());
         $this->assertEquals($code, $handler->getCode());
+        $this->assertEquals($headers, $handler->getHeaders());
+        $this->assertEquals($response, $handler->getRawResponse());
     }
 
     public function testSuccessfulResponse()
@@ -44,9 +52,13 @@ class ClientSaveMethodsTest extends TestCase {
         $this->client
             ->get('/successful.php')
             ->saveResponseHandler($handler)
-            ->saveResponseCode($code);
+            ->saveResponseCode($code)
+            ->saveResponseHeaders($headers)
+            ->saveRawResponse($response);
         $this->assertTrue($handler->wasSuccessful());
         $this->assertEquals(200, $handler->getCode());
         $this->assertEquals($code, $handler->getCode());
+        $this->assertEquals($headers, $handler->getHeaders());
+        $this->assertEquals($response, $handler->getRawResponse());
     }
 }
