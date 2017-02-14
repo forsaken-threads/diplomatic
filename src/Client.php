@@ -429,11 +429,11 @@ class Client {
      *
      * Set the response handler
      *
-     * @param ResponseHandler $responseHandler
+     * @param null|ResponseHandler $responseHandler
      *
      * @return $this
      */
-    public function setResponseHandler(ResponseHandler $responseHandler)
+    public function setResponseHandler(ResponseHandler $responseHandler = null)
     {
         $this->responseHandler = $responseHandler;
         return $this;
