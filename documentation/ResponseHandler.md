@@ -6,7 +6,7 @@ When creating a `Client` instance, you can an inject an extension of the abstrac
 
 In general, an errored response is one that results from a network condition, remote server error, or request dysfunction and causes the response format to be unparseable in the normal fashion.  A failed response and a successful response are ones that can be predictably parsed and contain an encoded result status that indicates either failure or success.
 
-If no `ResponseHandler` is provided to the `Client`, it will automatically use the `BasicHandler`.  This handler uses the HTTP status code of the response to determine errored, failed, and successful.  A 2XX code is successful, a 5xx code is errored, and anything else is failed.  This may meet the simplest of needs.
+If no `ResponseHandler` is provided to the `Client`, it will automatically use the `BasicHandler`.  This handler uses the HTTP status code of the response to determine errored, failed, and successful.  A 2XX code is successful, a 5XX code is errored, and anything else is failed.  This may meet the simplest of needs.
 
 **Diplomatic** also provides three simple handlers that will process the raw response in addition to the HTTP status code determination.  These do pretty much what you would expect. `SimpleJsonArrayHandler` processes a JSON raw response into an associative array.  `SimpleJsonObjectHandler` processes a JSON raw response into a `stdClass` object (unless, of course, the JSON represents an array, in which case you'll get an array).  `SimpleXmlHandler` processes an XML raw response into a `SimpleXMLElement` object.
 

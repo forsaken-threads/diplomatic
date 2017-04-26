@@ -3,11 +3,11 @@
 
 ### No Responses Needed? No Problem!
 
-If you are just looking for a clean way to send requests, and you really don't care about the responses from the server, simply instantiate a *Client* without the second argument.  **Diplomatic** is shipped with a basic response handler that uses the HTTP status code of the response to determine errored, failed, and successful requests.  A 2XX code is successful, a 5xx code is errored, and anything else is failed.
+If you are just looking for a clean way to send requests, and you really don't care about the responses from the server, simply instantiate a *Client* without the second argument.  **Diplomatic** is shipped with a basic response handler that uses the HTTP status code of the response to determine errored, failed, and successful requests.  A 2XX code is successful, a 5XX code is errored, and anything else is failed.
 
 ### Setup
 
-Instantiate a *Client* by calling the constructor and supplying a `destination` and optionally a response handler.  The `destination` must be, at a minimum, a domain name.  If you do not provide a scheme, it will default to using `https://`.  Once instantiated, you can add custom headers to every request the *Client* makes by calling `addHeaders` and providing an associative array of header type/values.  The response handler can be a class name or an instance of class.  This class must extend `ResponseHandler`.  If the `destination` or the handler are invalid, the *Client* will throw an appropriate `DiplomaticException`, the only time when anything in **Diplomatic** will ever throw an exception.    
+Instantiate a *Client* by calling the constructor and supplying a `destination` and optionally a response handler.  The `destination` must be, at a minimum, a domain name.  If you do not provide a scheme, it will default to using `https://`.  Once instantiated, you can add custom headers to every request the *Client* makes by calling `addHeaders` and providing an associative array of header type/values.  The response handler can be a class name or an instance of a class.  This class must extend `ResponseHandler`.  If the `destination` or the handler are invalid, the *Client* will throw an appropriate `DiplomaticException`, the only time when anything in **Diplomatic** will ever throw an exception.    
 
 We will continue with the Markit On Demand examples started in the *Response Handler* section. 
 

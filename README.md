@@ -12,7 +12,7 @@ The **Diplomatic** way is to attempt to be discrete at all costs. It should almo
 
 ### Basic Usage
 
-The simplest usage relies on a default `ResponseHandler` that determines if a request was successful by looking at the HTTP status code of the response: a 2XX code is successful, a 5xx code is errored, and anything else is failed.  Check it out [here](./src/BasicHandler.php).
+The simplest usage relies on a default `ResponseHandler` that determines if a request was successful by looking at the HTTP status code of the response: a 2XX code is successful, a 5XX code is errored, and anything else is failed.  Check it out [here](./src/BasicHandler.php).
 
 ```
 <?php
