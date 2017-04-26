@@ -10,7 +10,7 @@ If no `ResponseHandler` is provided to the `Client`, it will automatically use t
 
 **Diplomatic** also provides three simple handlers that will process the raw response in addition to the HTTP status code determination.  These do pretty much what you would expect. `SimpleJsonArrayHandler` processes a JSON raw response into an associative array.  `SimpleJsonObjectHandler` processes a JSON raw response into a `stdClass` object (unless, of course, the JSON represents an array, in which case you'll get an array).  `SimpleXmlHandler` processes an XML raw response into a `SimpleXMLElement` object.
 
-But what about situations where the HTTP status code isn't always meaningful.  Consider [Markit On Demand's Market Data APIs](http://dev.markitondemand.com/MODApis/).  Their APIs return a serialized `Error` object when a request fails, and it contains a single key, `Message`.  Otherwise, the response will contain the data that was requested, in the appropriate format (XML, JSON, or JSONP).  A malformed response (invalid XML, JSON, or JSONP) should only ever occur if something like a network or server error happened or the request itself was malformed.  Below is one way to implement the abstract methods for a `MarkitOnDemand` *Response Handler* extension (the full example can be found [here](../examples/MarkitOnDemandHandler.php)).
+But what about situations where the HTTP status code isn't always meaningful?  Consider [Markit On Demand's Market Data APIs](http://dev.markitondemand.com/MODApis/).  Their APIs return a serialized `Error` object when a request fails, and it contains a single key, `Message`.  Otherwise, the response will contain the data that was requested, in the appropriate format (XML, JSON, or JSONP).  A malformed response (invalid XML, JSON, or JSONP) should only ever occur if something like a network or server error happened or the request itself was malformed.  Below is one way to implement the abstract methods for a `MarkitOnDemand` *Response Handler* extension (the full example can be found [here](../examples/MarkitOnDemandHandler.php)).
 
 ```
 <?php
@@ -66,7 +66,7 @@ class ExampleHandler extends ResponseHandler
     
     public function __construct(array $sensitiveKeys)
     {
-        // the filter always received the current value of the filteredResponse as the first argument
+        // the filter always receives the current value of the filteredResponse as the first argument
         $this->filter(function ($filteredResponse) {
             // in here make sure the response is in the proper format, and if not, return it unchanged
             if (!is_array($filteredResponse) || !key_exists('csv_report', $filteredResponse)) {
@@ -78,7 +78,7 @@ class ExampleHandler extends ResponseHandler
             return $filteredResponse;
         }
         
-        // $sensitiveKeys will be passes to hideSensitiveData as the second argument
+        // $sensitiveKeys will be passed to hideSensitiveData as the second argument
         $this->filter([$this, 'hideSensitiveData'], $sensitiveKeys);
     }
     
@@ -142,7 +142,7 @@ $handler->filter(function($filteredResponse)
 
 The raw response, and the filtered response are stored in the `rawResponse` and `filteredResponse` properties of the `ResponseHandler`.  They have standard getters to retrieve them, `getRawResponse()` and `getFilteredResponse()`.
 
-The HTTP headers, version, and status code for the response are stored in the `headers`, `htmlVersion`, and `code` properties of the `ResponseHandler`.  The headers are stored as an associative array where the keys are the header type and the values are the header value.  They all have standard getters to retrieve them, `getHeaders()` and `getHtmlVersion()`, and `getCode()`.
+The HTTP headers, version, and status code for the response are stored in the `headers`, `htmlVersion`, and `code` properties of the `ResponseHandler`.  The headers are stored as an associative array where the keys are the header type and the values are the header value.  They all have standard getters to retrieve them, `getHeaders()`, `getHtmlVersion()`, and `getCode()`.
 
 The *Response Handler* abstract class also contains two other useful properties, `cliCall` and `curlInfo`. A string that represents a CLI version of the underlying cURL call can be found in `cliCall`. This might come in handy in weird debugging situations.  This one has a standard getter, `getCliCall()`.  The other one, `curlInfo`, contains a `CurlInfo` object that is a wrapper around the information returned by the method `curl_getinfo()`.  The `CurlInfo` object has standard getters for all of the keys in the associative array returned by `curl_getinfo()`.  To access them you must use the `curlInfo` getter `info()`.
 
