@@ -1,7 +1,8 @@
 <?php
 
+use ForsakenThreads\Diplomatic\BasicHandler;
 use ForsakenThreads\Diplomatic\Client;
-use ForsakenThreads\Diplomatic\Support\BasicFilters;
+use ForsakenThreads\Diplomatic\SimpleJsonArrayHandler;
 use PHPUnit\Framework\TestCase;
 
 class ClientGeneralTest extends TestCase {
@@ -11,9 +12,7 @@ class ClientGeneralTest extends TestCase {
 
     public function setup()
     {
-        $handler = new Handler();
-        $handler->filter([BasicFilters::class, 'json'], true);
-        $this->client = new Client('http://localhost:8888', $handler);
+        $this->client = new Client('http://localhost:8888', SimpleJsonArrayHandler::class);
     }
 
     public function testAddSetHeaders()
@@ -45,6 +44,25 @@ class ClientGeneralTest extends TestCase {
         $this->assertNotContains($rand2, $handler->getFilteredResponse());
         $this->assertContains('X-Diplomatic-Test-3', array_keys($handler->getFilteredResponse()));
         $this->assertContains($rand3, $handler->getFilteredResponse());
+    }
+
+    public function testSetResponseHandler()
+    {
+        $client = new Client('http://localhost:8888');
+        $client->get('/successful.php')->saveResponseHandler($handler);
+        $this->assertEquals(get_class($handler), BasicHandler::class);
+
+        $this->client->setResponseHandler(null);
+        $this->client->get('/successful.php')->saveResponseHandler($handler);
+        $this->assertEquals(get_class($handler), BasicHandler::class);
+
+        $this->client->setResponseHandler(SimpleJsonArrayHandler::class);
+        $this->client->get('/successful.php')->saveResponseHandler($handler);
+        $this->assertEquals(get_class($handler), SimpleJsonArrayHandler::class);
+
+        $this->client->setResponseHandler(new SimpleJsonArrayHandler());
+        $this->client->get('/successful.php')->saveResponseHandler($handler);
+        $this->assertEquals(get_class($handler), SimpleJsonArrayHandler::class);
     }
 
     public function testResponseHeaders()

@@ -1,5 +1,6 @@
 <?php namespace ForsakenThreads\Diplomatic;
 
+use ForsakenThreads\Diplomatic\Support\BasicFilters;
 use ForsakenThreads\Diplomatic\Support\CallableArgumentsPair;
 use ForsakenThreads\Diplomatic\Support\CurlInfo;
 use ForsakenThreads\Diplomatic\Support\Helpers;
@@ -27,6 +28,18 @@ abstract class ResponseHandler {
     /** @var CallableArgumentsPair[] $filters */
     protected $filters = [];
 
+    // whether to automatically apply a JSON filter
+    // that converts the raw response to an array
+    protected $filtersJsonArray = false;
+
+    // whether to automatically apply a JSON filter
+    // that converts the raw response to an object
+    protected $filtersJsonObject = false;
+
+    // whether to automatically apply an XML filter
+    // that converts the raw response to a SimpleXmlElement instance
+    protected $filtersXml = false;
+
     // Raw response
     protected $rawResponse;
 
@@ -52,6 +65,24 @@ abstract class ResponseHandler {
      * @return boolean
      */
     abstract function wasSuccessful();
+
+    /**
+     *
+     * Register a filter callback.
+     *
+     * These are called after the response handler is initialized by the `Client`.
+     * The callback will receive the raw response as its first argument.
+     * Optional extra arguments may be passed here that will also be forwarded to the filter when invoked.
+     *
+     * @param callable $callable
+     *
+     * @return $this
+     */
+    public function filter(callable $callable)
+    {
+        $this->filters[] = new CallableArgumentsPair(func_get_args());
+        return $this;
+    }
 
     /**
      *
@@ -150,6 +181,19 @@ abstract class ResponseHandler {
         $this->code = $code;
         $this->curlInfo = new CurlInfo($curlInfo);
         $this->cliCall = $cliCall;
+
+        // first we check for our basic filters
+        if ($this->filtersJsonObject) {
+            $this->filteredResponse = BasicFilters::json($this->filteredResponse);
+        } elseif ($this->filtersJsonArray) {
+            $this->filteredResponse = BasicFilters::json($this->filteredResponse, true);
+        }
+
+        if ($this->filtersXml) {
+            $this->filteredResponse = BasicFilters::simpleXml($this->filteredResponse);
+        }
+
+        // now we run through any custom filters
         $continue = 0;
         foreach ($this->filters as $filter) {
             if ($continue) {
@@ -167,23 +211,4 @@ abstract class ResponseHandler {
             }
         }
     }
-
-    /**
-     *
-     * Register a filter callback.
-     *
-     * These are called after the response handler is initialized by the `Client`.
-     * The callback will receive the raw response as its first argument.
-     * Optional extra arguments may be passed here that will also be forwarded to the filter when invoked.
-     *
-     * @param callable $callable
-     *
-     * @return $this
-     */
-    public function filter(callable $callable)
-    {
-        $this->filters[] = new CallableArgumentsPair(func_get_args());
-        return $this;
-    }
-
 }

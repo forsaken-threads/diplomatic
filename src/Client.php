@@ -71,11 +71,11 @@ class Client {
      * The scheme for the destination defaults to `https://` if it is not provided
      *
      * @param $destination
-     * @param null|ResponseHandler $responseHandler
+     * @param null|string|ResponseHandler $responseHandler
      *
      * @throws DiplomaticException
      */
-    public function __construct($destination, ResponseHandler $responseHandler = null)
+    public function __construct($destination, $responseHandler = null)
     {
         $this->setDestination($destination)
             ->setResponseHandler($responseHandler);
@@ -429,12 +429,22 @@ class Client {
      *
      * Set the response handler
      *
-     * @param null|ResponseHandler $responseHandler
-     *
+     * @param null|string|ResponseHandler $responseHandler
      * @return $this
+     * @throws DiplomaticException
      */
-    public function setResponseHandler(ResponseHandler $responseHandler = null)
+    public function setResponseHandler($responseHandler = null)
     {
+        if (is_string($responseHandler)) {
+            $responseHandler = new $responseHandler;
+        } elseif (is_null($responseHandler)) {
+            $responseHandler = new BasicHandler();
+        }
+
+        if (is_object($responseHandler) && ! $responseHandler instanceof ResponseHandler) {
+            throw new DiplomaticException('Invalid response handler. Expected extension of ForsakenThreads\Diplomatic\ResponseHandler. Received: ' . get_class($responseHandler));
+        }
+
         $this->responseHandler = $responseHandler;
         return $this;
     }

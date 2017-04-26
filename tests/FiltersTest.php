@@ -28,6 +28,5 @@ class FiltersTest extends TestCase {
 </testing>
 EOH;
         $this->assertEquals(new SimpleXMLElement($xml), BasicFilters::simpleXml($xml));
-        $this->assertEquals(['associative' => 'array'], BasicFilters::json(['associative' => 'array']));
     }
 }

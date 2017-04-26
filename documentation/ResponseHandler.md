@@ -2,9 +2,15 @@
 
 ### Implementing the abstract methods
 
-When creating a `Client` instance, you must an inject an extension of the abstract `ResponseHandler` class.  This class has three abstract methods that require implementation and are essentially a nudge to reasonably consider interaction with the response.  These methods are checks for the three basic response results - errored, failed, and successful.  In general, an errored response is one that results from a network condition, remote server error, or request dysfunction and causes the response format to be unparseable in the normal fashion.  A failed response and a successful response are ones that can be predictably parsed and contain an encoded result status that indicates either failure or success.
+When creating a `Client` instance, you can an inject an extension of the abstract `ResponseHandler` class.  This class has three abstract methods that require implementation and are essentially a nudge to reasonably consider interaction with the response.  These methods are checks for the three basic response results - errored, failed, and successful.
 
-Consider [Markit On Demand's Market Data APIs](http://dev.markitondemand.com/MODApis/).  Their APIs return a serialized `Error` object when a request fails, and it contains a single key, `Message`.  Otherwise, the response will contain the data that was requested, in the appropriate format (XML, JSON, or JSONP).  A malformed response (invalid XML, JSON, or JSONP) should only ever occur if something like a network or server error happened or the request itself was malformed.  Below is one way to implement these methods for a `MarkitOnDemand` *Response Handler* extension (the full example can be found [here](./examples/MarkitOnDemand.php)).
+In general, an errored response is one that results from a network condition, remote server error, or request dysfunction and causes the response format to be unparseable in the normal fashion.  A failed response and a successful response are ones that can be predictably parsed and contain an encoded result status that indicates either failure or success.
+
+If no `ResponseHandler` is provided to the `Client`, it will automatically use the `BasicHandler`.  This handler uses the HTTP status code of the response to determine errored, failed, and successful.  A 2XX code is successful, a 5xx code is errored, and anything else is failed.  This may meet the simplest of needs.
+
+**Diplomatic** also provides three simple handlers that will process the raw response in addition to the HTTP status code determination.  These do pretty much what you would expect. `SimpleJsonArrayHandler` processes a JSON raw response into an associative array.  `SimpleJsonObjectHandler` processes a JSON raw response into a `stdClass` object (unless, of course, the JSON represents an array, in which case you'll get an array).  `SimpleXmlHandler` processes an XML raw response into a `SimpleXMLElement` object.
+
+But what about situations where the HTTP status code isn't always meaningful.  Consider [Markit On Demand's Market Data APIs](http://dev.markitondemand.com/MODApis/).  Their APIs return a serialized `Error` object when a request fails, and it contains a single key, `Message`.  Otherwise, the response will contain the data that was requested, in the appropriate format (XML, JSON, or JSONP).  A malformed response (invalid XML, JSON, or JSONP) should only ever occur if something like a network or server error happened or the request itself was malformed.  Below is one way to implement the abstract methods for a `MarkitOnDemand` *Response Handler* extension (the full example can be found [here](../examples/MarkitOnDemandHandler.php)).
 
 ```
 <?php
@@ -43,7 +49,57 @@ class MarkitOnDemand extends ResponseHandler {
 
 ### Response filters
 
-The `ResponseHandler` class holds the raw response text as well as a filtered response.  When the `Client` initializes the handler, the raw response and the filtered response are the same.  Each filter registered with the handler will then be invoked and passed, at a minimum, the filtered response.  The filter should return either the response manipulated in some way or the unchanged response.  If you are using an API that mixes response formats, you can then chain filters together, checking the format each time to ensure that only the proper filter is applied.  If you have a long chain of filters and you'd like to break out of the invocation loop, you can throw an `Interrupt` exception.
+The `ResponseHandler` class holds the raw response text as well as a filtered response.  When the `Client` initializes the handler, the raw response and the filtered response are the same.  Each filter registered with the handler will then be invoked and passed, at a minimum, the filtered response.  The filter should return either the response manipulated in some way or the unchanged response.  If you are using an API that mixes response formats, you can then chain filters together, checking the format each time to ensure that only the proper filter is applied.
+
+Two common response formats are JSON and XML.  The `ResponseHandler` class has three properties that can be overridden to automatically handle these formats.  To convert JSON to an associative array, set `$filtersJsonArray` to `true` in your handler class.  To convert JSON to a `stdClass` object, set `$filtersJsonObject` to `true`.  Finally, if you want to convert XML to a `SimpleXMLElement` object, set `$filtersXml` to `true`.  (By default, these are all set to `false`.)  These three filters will be applied **before** any other custom filter callbacks, and because they only act on valid XML or JSON, each kind can be safely set to run.  Note that the JSON array conversion occurs first, so activating both object and array types will always lead to array conversion.
+
+To register a filter callback, use the `filter()` method on the handler.  This method accepts a `callable` as the first parameter.  Any other parameters will be passed to the `callable`.  Here's an example handler that will first apply the JSON array filter, and then two custom filters.
+
+```
+<?php
+
+use ForsakenThreads\Diplomatic\ResponseHandler;
+
+class ExampleHandler extends ResponseHandler
+{
+    protected $filtersJsonArray = true;
+    
+    public function __construct(array $sensitiveKeys)
+    {
+        // the filter always received the current value of the filteredResponse as the first argument
+        $this->filter(function ($filteredResponse) {
+            // in here make sure the response is in the proper format, and if not, return it unchanged
+            if (!is_array($filteredResponse) || !key_exists('csv_report', $filteredResponse)) {
+                return $filteredResponse;
+            }
+            
+            $filteredResponse['csv_report'] = $this->parseCsvReport($filteredResponse['csv_report']));
+            
+            return $filteredResponse;
+        }
+        
+        // $sensitiveKeys will be passes to hideSensitiveData as the second argument
+        $this->filter([$this, 'hideSensitiveData'], $sensitiveKeys);
+    }
+    
+    protected function hideSensitiveData($filteredResponse, $sensitiveKeys)
+    {
+        if (!is_array($filteredResponse)) {
+            return $filteredResponse;
+        }
+        
+        foreach ($sensitiveKeys as $key) {
+            unset($filteredResponse[$key]);
+        }
+        
+        return $filteredResponse;
+    }
+}
+```
+
+These filters can be registered in the constructor for the handler, but they can also be added to an instance of the handler.  Say, for instance, you have a number of API calls that are fairly simple, but one that is very different and requires some complex processing.  For the easy ones, you can instantiate the **Diplomatic** client with just the class name of your handler.  The client will instantiate the handler itself.  For the complex call, you could instantiate the handler yourself, register the complex filter, and then construct the client with your modified instance of the handler.  
+
+If you have a long chain of filters and you'd like to break out of the invocation loop, you can throw an `Interrupt` exception.  This will stop all future filters from being applied.
 
 ```
 <?php
@@ -82,58 +138,9 @@ $handler->filter(function($filteredResponse)
 });
 ```
 
-Filters are registered in the instantiated `ResponseHandler` by calling the public method `filter`.  This method accepts at least one argument, a `callable` that will receive the filtered response.  If you have extra arguments that you want the filter to receive at invocation, pass them to the `filter` method, and they will be appended to the argument list in the same order.  As an example you can look at how the two [basic filters](./src/Support/BasicFilters.php) supplied with **Diplomatic** work.  In most cases an API will return a response that's encoded in a specific way, often XML or JSON.  The `BasicFilters` class contains a filter for handling each of these cases.
-
-```
-<?php namespace ForsakenThreads\Diplomatic\Support;
-
-class BasicFilters {
-
-    static public function json($response, $assoc = false, $depth = 512, $options = 0)
-    {
-        if (!is_string($response)) {
-            return $response;
-        }
-
-        $filteredResponse = json_decode($response, $assoc, $depth, $options);
-
-        if (json_last_error() == JSON_ERROR_NONE) {
-            return $filteredResponse;
-        }
-
-        return $response;
-    }
-
-    static public function simpleXml($response, $className = 'SimpleXMLElement', $options = 0, $ns = '', $isPrefix = false)
-    {
-        $xml = @simplexml_load_string($response, $className, $options, $ns, $isPrefix);
-        if ($xml !== false) {
-            return $xml;
-        }
-        return $response;
-    }
-
-}
-```
-
-These are really just wrappers around two built-in PHP functions.  If you want to use one of these filters to parse a response, register it with your *Response Handler* extension like this:
-
-```
-<?php
-
-use ForsakenThreads\Diplomatic\Support\BasicFilters
-
-// this registers the json filter and passes true as the $assoc argument
-// to force the decoder to return an associative array rather than an object
-$handler->filter([BasicFilters::class, 'json'], true);
-
-// this registers the simpleXml filter and passes a custom class name to the second argument
-$handler->filter([BasicFilters::class, 'simpleXml'], 'AcmeSimpleXml');
-```
-
-Because the filters only act on valid XML or JSON, they can both be safely registered on the *Response Handler*.
-
 ### Other Stuff
+
+The raw response, and the filtered response are stored in the `rawResponse` and `filteredResponse` properties of the `ResponseHandler`.  They have standard getters to retrieve them, `getRawResponse()` and `getFilteredResponse()`.
 
 The HTTP headers, version, and status code for the response are stored in the `headers`, `htmlVersion`, and `code` properties of the `ResponseHandler`.  The headers are stored as an associative array where the keys are the header type and the values are the header value.  They all have standard getters to retrieve them, `getHeaders()` and `getHtmlVersion()`, and `getCode()`.
 
