@@ -596,7 +596,10 @@ class Client {
     {
         // This is the first header, which should be providing the Http version info
         if (empty($this->responseHttpVersion)) {
-            $this->responseHttpVersion = trim($headerString);
+            // We care only if not a 100 Continue
+            if (strpos($headerString, '100 Continue') === false) {
+                $this->responseHttpVersion = trim($headerString);
+            }
             return mb_strlen($headerString);
         }
 

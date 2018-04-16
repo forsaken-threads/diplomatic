@@ -57,35 +57,6 @@ class CliCallTest extends TestCase {
         $this->assertResultsEqual($cliCall, $handler);
     }
 
-    public function testInsecureConnection()
-    {
-        /** @var Handler $handler */
-        $client = new Client('https://madlib.tirekickin.com', new Handler);
-
-        $client->get('/index.php')
-            ->saveCall($cliCall)
-            ->saveResponseHandler($handler);
-        $this->assertResultsEqual($cliCall, $handler);
-
-        $client->insecure()
-            ->get('/index.php')
-            ->saveCall($cliCall)
-            ->saveResponseHandler($handler);
-        list($headers, $htmlVersion, $code, $rawResponse) = $this->parseCliResponse(`$cliCall 2>&1`);
-        // Remove some headers that could be understandably different
-        $testHeaders = $handler->getHeaders();
-        unset($testHeaders['Set-Cookie']);
-        unset($headers['Set-Cookie']);
-        unset($testHeaders['Date']);
-        unset($headers['Date']);
-        unset($testHeaders['Expires']);
-        unset($headers['Expires']);
-        $this->assertEquals($headers, $testHeaders);
-        $this->assertEquals($htmlVersion, $handler->getHtmlVersion());
-        $this->assertEquals($code, $handler->getCode());
-        $this->assertEquals($rawResponse, $handler->getRawResponse());
-    }
-
     public function testEchoData()
     {
         /** @var Handler $handler */
