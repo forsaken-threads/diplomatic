@@ -31,10 +31,17 @@ trait CliHelpers {
     protected function assertResultsEqual($cliCall, ResponseHandler $handler)
     {
         list($headers, $htmlVersion, $code, $rawResponse) = $this->parseCliResponse(`$cliCall 2>&1`);
-        $this->assertEquals($headers, $handler->getHeaders());
+        $this->assertEquals($this->exceptForDate($headers), $this->exceptForDate($handler->getHeaders()));
         $this->assertEquals($htmlVersion, $handler->getHtmlVersion());
         $this->assertEquals($code, $handler->getCode());
         $this->assertEquals($rawResponse, $handler->getRawResponse());
+    }
+
+    protected function exceptForDate($array)
+    {
+        return array_filter($array, function($key) {
+            return $key != 'Date';
+        }, ARRAY_FILTER_USE_KEY);
     }
 
     protected function parseCliResponse($response)

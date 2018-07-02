@@ -612,6 +612,20 @@ class Client {
 
     /**
      *
+     */
+    protected function resetHandlers()
+    {
+        // if required reset the handlers
+        if ($this->resetHandlers) {
+            $this->onAnyHandler = null;
+            $this->onErrorHandler = null;
+            $this->onFailureHandler = null;
+            $this->onSuccessHandler = null;
+        }
+    }
+
+    /**
+     *
      * Send the request
      *
      * @param string $page
@@ -795,38 +809,42 @@ class Client {
 
         // if errored, check for onError handler
         if ($this->onErrorHandler !== null && $this->responseHandler->wasErrored()) {
-            return is_callable($this->onErrorHandler)
+            $result = is_callable($this->onErrorHandler)
                 ? call_user_func_array($this->onErrorHandler, Helpers::array_enqueue($this->onErrorHandlerExtraArgs, $this->responseHandler))
                 : $this->onErrorHandler;
+
+            $this->resetHandlers();
+            return $result;
         }
 
         // if failed, check for onFailure handler
         if ($this->onFailureHandler !== null && $this->responseHandler->wasFailed()) {
-            return is_callable($this->onFailureHandler)
+            $result = is_callable($this->onFailureHandler)
                 ? call_user_func_array($this->onFailureHandler, Helpers::array_enqueue($this->onFailureHandlerExtraArgs, $this->responseHandler))
                 : $this->onFailureHandler;
+
+            $this->resetHandlers();
+            return $result;
         }
 
         // if successful, check for onSuccess handler
         if ($this->onSuccessHandler !== null && $this->responseHandler->wasSuccessful()) {
-            return is_callable($this->onSuccessHandler)
+            $result = is_callable($this->onSuccessHandler)
                 ? call_user_func_array($this->onSuccessHandler, Helpers::array_enqueue($this->onSuccessHandlerExtraArgs, $this->responseHandler))
                 : $this->onSuccessHandler;
+
+            $this->resetHandlers();
+            return $result;
         }
 
         // check for onAny handler as a last fallback
         if ($this->onAnyHandler !== null) {
-            return is_callable($this->onAnyHandler)
+            $result = is_callable($this->onAnyHandler)
                 ? call_user_func_array($this->onAnyHandler, Helpers::array_enqueue($this->onAnyHandlerExtraArgs, $this->responseHandler))
                 : $this->onAnyHandler;
-        }
 
-        // if required reset the handlers
-        if ($this->resetHandlers) {
-            $this->onAnyHandler = null;
-            $this->onErrorHandler = null;
-            $this->onFailureHandler = null;
-            $this->onSuccessHandler = null;
+            $this->resetHandlers();
+            return $result;
         }
 
         return $this;
