@@ -6,12 +6,13 @@
         {
             "name": "Keith E. Freeman",
             "email": "diplomatic@forsaken-threads.com",
-            "homepage": "http://forsaken-threads.com",
+            "homepage": "https://forsaken-threads.com",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": "^5.5.0 || ^7.0"
+        "php": "^5.5.0 || ^7.0",
+        "ext-curl": "*"
     },
     "autoload": {
         "psr-4": {
