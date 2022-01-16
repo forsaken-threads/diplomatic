@@ -1,7 +1,8 @@
 <?php
 
-var_dump($_GET);
-var_dump($_POST);
+if (empty($_FILES)) {
+    echo "couldn't open file \"\"";
+}
 foreach ($_FILES as $inputName => $files) {
     var_dump($inputName);
     foreach ($files as $key => $file) {
