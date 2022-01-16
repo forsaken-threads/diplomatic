@@ -16,6 +16,9 @@ class Client {
     // Http response code of the response
     protected $code;
 
+    // Any cookies to include with the request
+    protected $cookies = [];
+
     // The schema, host, port, and/or path for the request
     protected $destination;
 
@@ -479,6 +482,17 @@ class Client {
     }
 
     /**
+     * An associative array of cookie names => cookie values.
+     * @param array $cookies
+     * @return $this
+     */
+    public function withCookies(array $cookies)
+    {
+        $this->cookies = $cookies;
+        return $this;
+    }
+
+    /**
      *
      * Convert array to CLI cURL multipart/form-data format
      *
@@ -702,6 +716,18 @@ class Client {
         } else {
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
+        }
+
+        // add any cookies
+        if ($this->cookies) {
+            $cookies = [];
+
+            foreach ($this->cookies as $name => $value) {
+                $cookies[] = "$name=$value";
+            }
+
+            $cliCall .= ' --cookie ' . addslashes(implode('; ', $cookies));
+            curl_setopt($curl, CURLOPT_COOKIE, implode('; ', $cookies));
         }
 
         // add the page to the destination, and if this is a GET request, the data as a query string
