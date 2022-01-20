@@ -726,7 +726,7 @@ class Client {
                 $cookies[] = "$name=$value";
             }
 
-            $cliCall .= ' --cookie ' . addslashes(implode('; ', $cookies));
+            $cliCall .= " --cookie '" . addslashes(implode('; ', $cookies)) . "'";
             curl_setopt($curl, CURLOPT_COOKIE, implode('; ', $cookies));
         }
 
