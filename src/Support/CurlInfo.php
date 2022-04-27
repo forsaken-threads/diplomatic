@@ -5,6 +5,11 @@ class CurlInfo {
     // The result of curl_getinfo() for the Request
     protected $info;
 
+    public function __construct($info)
+    {
+        $this->info = $info;
+    }
+
     public function getCertinfo()
     {
         return $this->info['certinfo'];

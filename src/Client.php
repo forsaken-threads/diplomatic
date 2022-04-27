@@ -619,7 +619,15 @@ class Client {
 
         $parts = explode(':', $headerString, 2);
         if (!empty(trim($parts[0]))) {
-            $this->responseHeaders[trim($parts[0])] = trim($parts[1]);
+            $header = trim($parts[0]);
+            $value = trim($parts[1]);
+            if (!key_exists($header, $this->responseHeaders)) {
+                $this->responseHeaders[$header] = $value;
+            } elseif (!is_array($this->responseHeaders[$header])) {
+                $this->responseHeaders[$header] = [$this->responseHeaders[$header], $value];
+            } else {
+                $this->responseHeaders[$header][] = $value;
+            }
         }
         return mb_strlen($headerString);
     }
