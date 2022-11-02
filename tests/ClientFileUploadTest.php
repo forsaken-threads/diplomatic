@@ -20,7 +20,7 @@ class ClientFileUploadTest extends TestCase {
     /** @var Client */
     protected $client;
 
-    public function setup()
+    public function setup(): void
     {
         $handler = new Handler();
         $handler->filter([BasicFilters::class, 'json'], true);
@@ -34,14 +34,14 @@ class ClientFileUploadTest extends TestCase {
         $this->client->post('/file-upload.php', $this->postData, ['basic_file' => false])
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
-        $this->assertEquals('couldn\'t open file ""', $handler->getRawResponse());
-        $this->assertRegExp('/^curl: option -F: is badly used here/', `$cliCall 2>&1`);
+        $this->assertEquals('operation aborted by callback', $handler->getRawResponse());
+        $this->assertMatchesRegularExpression('/^curl: option -F: is badly used here/', `$cliCall 2>&1`);
 
         $this->client->post('/file-upload.php', $this->postData, ['basic_file' => __DIR__ . $this->fileInfo['basic_files'][0][0]])
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
-        $this->assertRegExp('/^' . $this->fileInfo['basic_files'][0][1] . '$/m', $handler->getRawResponse());
+        $this->assertMatchesRegularExpression('/^' . $this->fileInfo['basic_files'][0][1] . '$/m', $handler->getRawResponse());
 
         $files = [];
         $regex = [];
@@ -54,7 +54,7 @@ class ClientFileUploadTest extends TestCase {
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         foreach ($regex as $expression) {
-            $this->assertRegExp('/^' . $expression . '$/m', $handler->getRawResponse());
+            $this->assertMatchesRegularExpression('/^' . $expression . '$/m', $handler->getRawResponse());
         }
 
         $files = [];
@@ -68,7 +68,7 @@ class ClientFileUploadTest extends TestCase {
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         foreach ($regex as $expression) {
-            $this->assertRegExp('/^' . $expression . '$/m', $handler->getRawResponse());
+            $this->assertMatchesRegularExpression('/^' . $expression . '$/m', $handler->getRawResponse());
         }
 
         $files = [];
@@ -82,7 +82,7 @@ class ClientFileUploadTest extends TestCase {
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         foreach ($regex as $expression) {
-            $this->assertRegExp('/^' . $expression . '$/m', $handler->getRawResponse());
+            $this->assertMatchesRegularExpression('/^' . $expression . '$/m', $handler->getRawResponse());
         }
 
         $files = [];
@@ -96,7 +96,7 @@ class ClientFileUploadTest extends TestCase {
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         foreach ($regex as $expression) {
-            $this->assertRegExp('/^' . $expression . '$/m', $handler->getRawResponse());
+            $this->assertMatchesRegularExpression('/^' . $expression . '$/m', $handler->getRawResponse());
         }
     }
 
@@ -107,7 +107,7 @@ class ClientFileUploadTest extends TestCase {
             ->saveCall($cliCall)
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
-        $this->assertRegExp('/^' . $this->fileInfo['basic_files'][0][1] . '$/m', $handler->getRawResponse());
+        $this->assertMatchesRegularExpression('/^' . $this->fileInfo['basic_files'][0][1] . '$/m', $handler->getRawResponse());
 
         $files = [];
         $regex = [];
@@ -120,7 +120,7 @@ class ClientFileUploadTest extends TestCase {
             ->saveResponseHandler($handler);
         $this->assertResultsEqual($cliCall, $handler);
         foreach ($regex as $expression) {
-            $this->assertRegExp('/^' . $expression . '$/m', $handler->getRawResponse());
+            $this->assertMatchesRegularExpression('/^' . $expression . '$/m', $handler->getRawResponse());
         }
     }
 }

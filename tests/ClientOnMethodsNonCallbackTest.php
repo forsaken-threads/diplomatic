@@ -8,7 +8,7 @@ class ClientOnMethodsNonCallbackTest extends TestCase {
     /** @var Client */
     protected $client;
 
-    public function setup()
+    public function setup(): void
     {
         $handler = new Handler();
         $this->client = new Client('http://localhost:8888', $handler);

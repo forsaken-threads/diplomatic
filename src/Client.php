@@ -509,7 +509,13 @@ class Client {
                 $multipartData .= $this->convertDataToMultipart($value, !$array_field ? $key : $array_field . '[' . $key . ']');
             } elseif (is_a($value, CURLFile::class)) {
                 /** @var CURLFile $value */
-                $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=@"' . addcslashes($value->getFilename(), '"\\') . '";type=' . $value->getMimeType() . ';filename="' . addcslashes($value->getPostFilename(), '"\\') . '"');
+                $filename = $value->getFilename();
+
+                if ($filename === __DIR__ . '/non-existent-file') {
+                    $filename = '';
+                }
+
+                $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=@"' . addcslashes($filename, '"\\') . '";type=' . $value->getMimeType() . ';filename="' . addcslashes($value->getPostFilename(), '"\\') . '"');
             } else {
                 $multipartData .= ' -F ' . escapeshellarg((!$array_field ? $key : $array_field . '[' . $key . ']') . '=' . $value);
             }
@@ -559,7 +565,7 @@ class Client {
      * @param string $mimeType
      * @param null $postName
      *
-     * @return CURLFile
+     * @return CURLFile|false
      */
     protected function getCurlFile($fileInfo, $mimeType = 'application/octet-stream', $postName = null)
     {
@@ -573,7 +579,7 @@ class Client {
         }
 
         // this will cause an error, but diplomatically not throw an exception.
-        return new CURLFile('');
+        return new CURLFile(__DIR__ . '/non-existent-file');
     }
 
     /**

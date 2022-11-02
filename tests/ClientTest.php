@@ -5,12 +5,12 @@ use ForsakenThreads\Diplomatic\Client;
 use ForsakenThreads\Diplomatic\SimpleJsonArrayHandler;
 use PHPUnit\Framework\TestCase;
 
-class ClientGeneralTest extends TestCase {
+class ClientTest extends TestCase {
 
     /** @var Client */
     protected $client;
 
-    public function setup()
+    public function setup(): void
     {
         $this->client = new Client('http://localhost:8888', SimpleJsonArrayHandler::class);
     }

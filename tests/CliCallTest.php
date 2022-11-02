@@ -13,7 +13,7 @@ class CliCallTest extends TestCase {
 
     protected $stringData;
 
-    public function setup()
+    public function setup(): void
     {
         $handler = new Handler();
         $handler->filter([BasicFilters::class, 'json'], true);

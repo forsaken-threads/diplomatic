@@ -9,7 +9,7 @@ class BasicResponseHandlerTest extends TestCase {
     /** @var Client */
     protected $client;
 
-    public function setup()
+    public function setup(): void
     {
         $this->client = new Client('http://localhost:8888');
     }
